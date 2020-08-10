@@ -23,7 +23,10 @@ import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPv4Address;
+import com.github.robtimus.net.ip.IPv4Subnet;
 import com.github.robtimus.net.ip.IPv6Address;
+import com.github.robtimus.net.ip.IPv6Subnet;
+import com.github.robtimus.net.ip.Subnet;
 
 /**
  * A module that adds support for serializing and deserializing IP addresses and ranges values.
@@ -56,18 +59,28 @@ public final class IPModule extends Module {
 
     private void setupSerializers(SetupContext context) {
         SimpleSerializers serializers = new SimpleSerializers();
+
         serializers.addSerializer(IPAddressSerializer.ipv4());
         serializers.addSerializer(IPAddressSerializer.ipv6());
         serializers.addSerializer(IPAddressSerializer.anyVersion());
+
+        serializers.addSerializer(SubnetSerializer.ipv4());
+        serializers.addSerializer(SubnetSerializer.ipv6());
+        serializers.addSerializer(SubnetSerializer.anyVersion());
 
         context.addSerializers(serializers);
     }
 
     private void setupDeserializers(SetupContext context) {
         SimpleDeserializers deserializers = new SimpleDeserializers();
+
         deserializers.addDeserializer(IPv4Address.class, IPAddressDeserializer.ipv4());
         deserializers.addDeserializer(IPv6Address.class, IPAddressDeserializer.ipv6());
         deserializers.addDeserializer(IPAddress.class, IPAddressDeserializer.anyVersion());
+
+        deserializers.addDeserializer(IPv4Subnet.class, SubnetDeserializer.ipv4());
+        deserializers.addDeserializer(IPv6Subnet.class, SubnetDeserializer.ipv6());
+        deserializers.addDeserializer(Subnet.class, SubnetDeserializer.anyVersion());
 
         context.addDeserializers(deserializers);
     }

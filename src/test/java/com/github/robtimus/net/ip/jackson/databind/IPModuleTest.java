@@ -35,7 +35,10 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPv4Address;
+import com.github.robtimus.net.ip.IPv4Subnet;
 import com.github.robtimus.net.ip.IPv6Address;
+import com.github.robtimus.net.ip.IPv6Subnet;
+import com.github.robtimus.net.ip.Subnet;
 
 @SuppressWarnings("nls")
 class IPModuleTest {
@@ -173,7 +176,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv6Address instead of IPAddress<IPv4Address>")
-                void testIPv6AddressInsteadOfIPv4IPAddress() throws IOException {
+                void testIPv6AddressInsteadOfIPAddressOfIPv4() throws IOException {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -190,7 +193,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv4Address instead of IPAddress<IPv6Address>")
-                void testIPv4AddressInsteadOfIPv6IPAddress() throws IOException {
+                void testIPv4AddressInsteadOfIPAddressOfIPv6() throws IOException {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -218,15 +221,187 @@ class IPModuleTest {
         }
     }
 
+    @Nested
+    @DisplayName("Subnets")
+    class Subnets {
+
+        @Nested
+        @DisplayName("serialize")
+        class Serialize {
+
+            @Test
+            @DisplayName("nulls")
+            void testSerializeNulls() throws IOException {
+                TestClass original = new TestClass();
+
+                StringWriter writer = new StringWriter();
+                mapper.writeValue(writer, original);
+
+                String json = writer.toString();
+                assertThat(json, containsString("\"ipv4Subnet\":null"));
+                assertThat(json, containsString("\"ipv6Subnet\":null"));
+                assertThat(json, containsString("\"subnet\":null"));
+                assertThat(json, containsString("\"genericIPv4Subnet\":null"));
+                assertThat(json, containsString("\"genericIPv6Subnet\":null"));
+            }
+
+            @Test
+            @DisplayName("non-nulls")
+            void testSerializeNonNulls() throws IOException {
+                TestClass original = createPopulatedTestObject();
+
+                StringWriter writer = new StringWriter();
+                mapper.writeValue(writer, original);
+
+                String json = writer.toString();
+                assertThat(json, containsString("\"ipv4Subnet\":\"127.0.0.0/24\""));
+                assertThat(json, containsString("\"ipv6Subnet\":\"::/96\""));
+                assertThat(json, containsString("\"subnet\":\"::/64\""));
+                assertThat(json, containsString("\"genericIPv4Subnet\":\"127.0.0.0/16\""));
+                assertThat(json, containsString("\"genericIPv6Subnet\":\"::/80\""));
+            }
+        }
+
+        @Nested
+        @DisplayName("deserialize")
+        class Deserialize {
+
+            @Test
+            @DisplayName("nulls")
+            void testSerializeNulls() throws IOException {
+                TestClass original = new TestClass();
+
+                StringWriter writer = new StringWriter();
+                mapper.writeValue(writer, original);
+
+                String json = writer.toString();
+
+                TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                assertNull(deserialized.ipv4Subnet);
+                assertNull(deserialized.ipv6Subnet);
+                assertNull(deserialized.subnet);
+                assertNull(deserialized.genericIPv4Subnet);
+                assertNull(deserialized.genericIPv4Subnet);
+            }
+
+            @Test
+            @DisplayName("non-nulls")
+            void testSerializeNonNulls() throws IOException {
+                TestClass original = createPopulatedTestObject();
+
+                StringWriter writer = new StringWriter();
+                mapper.writeValue(writer, original);
+
+                String json = writer.toString();
+
+                TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                assertEquals(original.ipv4Subnet, deserialized.ipv4Subnet);
+                assertEquals(original.ipv6Subnet, deserialized.ipv6Subnet);
+                assertEquals(original.subnet, deserialized.subnet);
+                assertEquals(original.genericIPv4Subnet, deserialized.genericIPv4Subnet);
+                assertEquals(original.genericIPv6Subnet, deserialized.genericIPv6Subnet);
+            }
+
+            @Nested
+            @DisplayName("incompatible values")
+            class IncompatibleVersions {
+
+                @Test
+                @DisplayName("IPv6Subnet instead of IPv4Subnet")
+                void testIPv6SubnetInsteadOfIPv4Subnet() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String invalidSubnet = IPv6Address.MIN_VALUE.inSubnet(0).toString();
+                    String json = writer.toString()
+                            .replace(original.ipv4Subnet.toString(), invalidSubnet);
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                }
+
+                @Test
+                @DisplayName("IPv4Subnet instead of IPv6Subnet")
+                void testIPv4SubnetInsteadOfIPv6Subnet() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String invalidSubnet = IPv4Address.LOCALHOST.inSubnet(16).toString();
+                    String json = writer.toString()
+                            .replace(original.ipv6Subnet.toString(), invalidSubnet);
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                }
+
+                @Test
+                @DisplayName("IPv6Subnet instead of Subnet<IPv4Address>")
+                void testIPv6SubnetInsteadOfSubnetOfIPv4() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String invalidSubnet = IPv6Address.MIN_VALUE.inSubnet(16).toString();
+                    String json = writer.toString()
+                            .replace(original.genericIPv4Subnet.toString(), invalidSubnet);
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                }
+
+                @Test
+                @DisplayName("IPv4Subnet instead of Subnet<IPv6Address>")
+                void testIPv4SubnetInsteadOfSubnetOfIPv6() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String invalidSubnet = IPv4Address.LOCALHOST.inSubnet(16).toString();
+                    String json = writer.toString()
+                            .replace(original.genericIPv6Subnet.toString(), invalidSubnet);
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                }
+            }
+        }
+
+        private TestClass createPopulatedTestObject() {
+            TestClass testObject = new TestClass();
+            testObject.ipv4Subnet = IPv4Address.LOCALHOST.inSubnet(24);
+            testObject.ipv6Subnet = IPv6Address.MIN_VALUE.inSubnet(96);
+            testObject.subnet = IPv6Address.MIN_VALUE.inSubnet(64);
+            testObject.genericIPv4Subnet = IPv4Address.LOCALHOST.inSubnet(16);
+            testObject.genericIPv6Subnet = IPv6Address.MIN_VALUE.inSubnet(80);
+            return testObject;
+        }
+    }
+
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
     private static final class TestClass {
 
         private IPv4Address ipv4Address;
-
         private IPv6Address ipv6Address;
-
         private IPAddress<?> ipAddress;
         private IPAddress<IPv4Address> genericIPv4Address;
         private IPAddress<IPv6Address> genericIPv6Address;
+
+        private IPv4Subnet ipv4Subnet;
+        private IPv6Subnet ipv6Subnet;
+        private Subnet<?> subnet;
+        private Subnet<IPv4Address> genericIPv4Subnet;
+        private Subnet<IPv6Address> genericIPv6Subnet;
     }
 }
