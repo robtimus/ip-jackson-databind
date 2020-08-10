@@ -18,12 +18,10 @@
 package com.github.robtimus.net.ip.jackson.databind;
 
 import java.io.IOException;
-import java.util.Objects;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.github.robtimus.net.ip.IPAddress;
-import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv6Address;
 
@@ -35,20 +33,16 @@ import com.github.robtimus.net.ip.IPv6Address;
  */
 public abstract class IPAddressSerializer<IP extends IPAddress<?>> extends JsonSerializer<IP> {
 
-    private final IPAddressFormatter<IP> formatter;
-
     /**
      * Creates a new IP address serializer.
-     *
-     * @param formatter The formatter to use for parsing strings into IP addresses.
      */
-    protected IPAddressSerializer(IPAddressFormatter<IP> formatter) {
-        this.formatter = Objects.requireNonNull(formatter);
+    protected IPAddressSerializer() {
+        super();
     }
 
     @Override
     public void serialize(IP value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeString(formatter.format(value));
+        gen.writeString(value.toString());
     }
 
     @Override
@@ -66,10 +60,6 @@ public abstract class IPAddressSerializer<IP extends IPAddress<?>> extends JsonS
     private static final class IPv4 extends IPAddressSerializer<IPv4Address> {
 
         private static final IPv4 INSTANCE = new IPv4();
-
-        private IPv4() {
-            super(IPAddressFormatter.ipv4());
-        }
 
         @Override
         public Class<IPv4Address> handledType() {
@@ -90,10 +80,6 @@ public abstract class IPAddressSerializer<IP extends IPAddress<?>> extends JsonS
 
         private static final IPv6 INSTANCE = new IPv6();
 
-        private IPv6() {
-            super(IPAddressFormatter.ipv6WithDefaults());
-        }
-
         @Override
         public Class<IPv6Address> handledType() {
             return IPv6Address.class;
@@ -112,10 +98,6 @@ public abstract class IPAddressSerializer<IP extends IPAddress<?>> extends JsonS
     private static final class AnyVersion extends IPAddressSerializer<IPAddress<?>> {
 
         private static final AnyVersion INSTANCE = new AnyVersion();
-
-        private AnyVersion() {
-            super(IPAddressFormatter.anyVersionWithDefaults());
-        }
 
         @Override
         @SuppressWarnings("unchecked")
