@@ -27,11 +27,14 @@ import com.github.robtimus.net.ip.IPv6Range;
 
 abstract class IPRangeSerializer<R extends IPRange<?>> extends JsonSerializer<R> {
 
+    static final String FROM_FIELD_NAME = "from"; //$NON-NLS-1$
+    static final String TO_FIELD_NAME = "to"; //$NON-NLS-1$
+
     @Override
     public void serialize(R value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("from", value.from().toString()); //$NON-NLS-1$
-        gen.writeStringField("to", value.to().toString()); //$NON-NLS-1$
+        gen.writeStringField(FROM_FIELD_NAME, value.from().toString());
+        gen.writeStringField(TO_FIELD_NAME, value.to().toString());
         gen.writeEndObject();
     }
 

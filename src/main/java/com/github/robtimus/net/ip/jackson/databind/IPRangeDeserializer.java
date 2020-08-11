@@ -17,7 +17,13 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
+import static com.github.robtimus.net.ip.jackson.databind.IPRangeSerializer.FROM_FIELD_NAME;
+import static com.github.robtimus.net.ip.jackson.databind.IPRangeSerializer.TO_FIELD_NAME;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
@@ -27,6 +33,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPRange;
@@ -49,14 +56,35 @@ abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserialize
 
     private R deserializeIPRange(JsonParser p) throws IOException {
         TreeNode node = p.readValueAsTree();
-        String from = getTextValue(node, "from"); //$NON-NLS-1$
-        String to = getTextValue(node, "to"); //$NON-NLS-1$
+        validateProperties(node, p);
+        String from = getTextValue(node, FROM_FIELD_NAME);
+        String to = getTextValue(node, TO_FIELD_NAME);
         return deserializeIPRange(from, to);
     }
 
     private String getTextValue(TreeNode node, String fieldName) {
-        TextNode textNode = (TextNode) node.get(fieldName);
-        return textNode.asText();
+        TreeNode childNode = node.get(fieldName);
+        if (childNode instanceof TextNode) {
+            TextNode textNode = (TextNode) childNode;
+            return textNode.asText();
+        }
+        if (childNode == null) {
+            throw new IllegalStateException(Messages.IPRange.missingProperty.get(fieldName));
+        }
+        throw new IllegalStateException(Messages.IPRange.invalidPropertyValue.get(fieldName, childNode));
+    }
+
+    private void validateProperties(TreeNode node, JsonParser p) throws UnrecognizedPropertyException {
+        Set<String> fieldNames = new LinkedHashSet<>();
+        for (Iterator<String> i = node.fieldNames(); i.hasNext(); ) {
+            fieldNames.add(i.next());
+        }
+        fieldNames.remove(FROM_FIELD_NAME);
+        fieldNames.remove(TO_FIELD_NAME);
+        if (!fieldNames.isEmpty()) {
+            String fieldName = fieldNames.iterator().next();
+            throw UnrecognizedPropertyException.from(p, IPRange.class, fieldName, Arrays.asList(FROM_FIELD_NAME, TO_FIELD_NAME));
+        }
     }
 
     abstract R deserializeSubnet(String value);

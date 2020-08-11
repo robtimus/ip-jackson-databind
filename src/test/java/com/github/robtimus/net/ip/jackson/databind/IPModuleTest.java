@@ -18,6 +18,7 @@
 package com.github.robtimus.net.ip.jackson.databind;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPRange;
 import com.github.robtimus.net.ip.IPv4Address;
@@ -104,7 +106,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("nulls")
-            void testSerializeNulls() throws IOException {
+            void testDeserializeNulls() throws IOException {
                 TestClass original = new TestClass();
 
                 StringWriter writer = new StringWriter();
@@ -123,7 +125,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("non-nulls")
-            void testSerializeNonNulls() throws IOException {
+            void testDeserializeNonNulls() throws IOException {
                 TestClass original = createPopulatedTestObject();
 
                 StringWriter writer = new StringWriter();
@@ -272,7 +274,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("nulls")
-            void testSerializeNulls() throws IOException {
+            void testDeserializeNulls() throws IOException {
                 TestClass original = new TestClass();
 
                 StringWriter writer = new StringWriter();
@@ -291,7 +293,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("non-nulls")
-            void testSerializeNonNulls() throws IOException {
+            void testDeserializeNonNulls() throws IOException {
                 TestClass original = createPopulatedTestObject();
 
                 StringWriter writer = new StringWriter();
@@ -444,7 +446,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testSerializeNulls() throws IOException {
+                void testDeserializeNulls() throws IOException {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -463,7 +465,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testSerializeNonNulls() throws IOException {
+                void testDeserializeNonNulls() throws IOException {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -613,7 +615,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testSerializeNulls() throws IOException {
+                void testDeserializeNulls() throws IOException {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -632,7 +634,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testSerializeNonNulls() throws IOException {
+                void testDeserializeNonNulls() throws IOException {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -782,7 +784,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testSerializeNulls() throws IOException {
+                void testDeserializeNulls() throws IOException {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -801,7 +803,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testSerializeNonNulls() throws IOException {
+                void testDeserializeNonNulls() throws IOException {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -1058,6 +1060,89 @@ class IPModuleTest {
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
                         assertEquals(Messages.IPRange.incompatibleToAndFrom.get(from, to), exception.getCause().getMessage());
                     }
+                }
+            }
+
+            @Nested
+            @DisplayName("invalid contents")
+            class InvalidContents {
+
+                @Test
+                @DisplayName("missing from")
+                void testMissingFrom() {
+                    String json = "{\"ipRange\":{\"to\":\"127.0.0.1\"}";
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
+                    assertEquals(Messages.IPRange.missingProperty.get("from"), exception.getCause().getMessage());
+                }
+
+                @Test
+                @DisplayName("missing to")
+                void testMissingTo() {
+                    String json = "{\"ipRange\":{\"from\":\"127.0.0.1\"}";
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
+                    assertEquals(Messages.IPRange.missingProperty.get("to"), exception.getCause().getMessage());
+                }
+
+                @Test
+                @DisplayName("null from")
+                void testNullFrom() {
+                    String json = "{\"ipRange\":{\"from\":null,\"to\":\"127.0.0.1\"}";
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
+                    assertEquals(Messages.IPRange.invalidPropertyValue.get("from", "null"), exception.getCause().getMessage());
+                }
+
+                @Test
+                @DisplayName("null to")
+                void testNullTo() {
+                    String json = "{\"ipRange\":{\"from\":\"127.0.0.1\",\"to\":null}";
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
+                    assertEquals(Messages.IPRange.invalidPropertyValue.get("to", "null"), exception.getCause().getMessage());
+                }
+
+                @Test
+                @DisplayName("incorrect from")
+                void testIncorrectFrom() {
+                    String json = "{\"ipRange\":{\"from\":{},\"to\":\"127.0.0.1\"}";
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
+                    assertEquals(Messages.IPRange.invalidPropertyValue.get("from", "{}"), exception.getCause().getMessage());
+                }
+
+                @Test
+                @DisplayName("incorrect to")
+                void testIncorrectTo() {
+                    String json = "{\"ipRange\":{\"from\":\"127.0.0.1\",\"to\":{}}";
+
+                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
+                    assertEquals(Messages.IPRange.invalidPropertyValue.get("to", "{}"), exception.getCause().getMessage());
+                }
+
+                @Test
+                @DisplayName("unknown property")
+                void testUnknownProperty() {
+                    String json = "{\"ipRange\":{\"from\":\"127.0.0.1\",\"to\":\"127.0.0.6\",\"unknown\":null}";
+
+                    UnrecognizedPropertyException exception = assertThrows(UnrecognizedPropertyException.class,
+                            () -> mapper.readValue(json, TestClass.class));
+                    assertEquals(IPRange.class, exception.getReferringClass());
+                    assertEquals("unknown", exception.getPropertyName());
+                    assertThat(exception.getKnownPropertyIds(), contains("from", "to"));
                 }
             }
 
