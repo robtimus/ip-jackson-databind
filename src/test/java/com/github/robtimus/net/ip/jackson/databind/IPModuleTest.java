@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,9 +35,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.robtimus.net.ip.IPAddress;
+import com.github.robtimus.net.ip.IPRange;
 import com.github.robtimus.net.ip.IPv4Address;
+import com.github.robtimus.net.ip.IPv4Range;
 import com.github.robtimus.net.ip.IPv4Subnet;
 import com.github.robtimus.net.ip.IPv6Address;
+import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
@@ -148,13 +152,11 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidIPAddress = IPv6Address.LOCALHOST.toString();
+                    IPv6Address invalidIPAddress = IPv6Address.LOCALHOST;
                     String json = writer.toString()
-                            .replace(original.ipv4Address.toString(), invalidIPAddress);
+                            .replace(original.ipv4Address.toString(), invalidIPAddress.toString());
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidIPAddress));
+                    assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv4Address::valueOf);
                 }
 
                 @Test
@@ -165,13 +167,11 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidIPAddress = IPv4Address.LOCALHOST.toString();
+                    IPv4Address invalidIPAddress = IPv4Address.LOCALHOST;
                     String json = writer.toString()
-                            .replace(original.ipv6Address.toString(), invalidIPAddress);
+                            .replace(original.ipv6Address.toString(), invalidIPAddress.toString());
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidIPAddress));
+                    assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv6Address::valueOf);
                 }
 
                 @Test
@@ -182,13 +182,11 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidIPAddress = IPv6Address.LOCALHOST.toString();
+                    IPv6Address invalidIPAddress = IPv6Address.LOCALHOST;
                     String json = writer.toString()
-                            .replace(original.genericIPv4Address.toString(), invalidIPAddress);
+                            .replace(original.genericIPv4Address.toString(), invalidIPAddress.toString());
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidIPAddress));
+                    assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv4Address::valueOf);
                 }
 
                 @Test
@@ -199,13 +197,19 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidIPAddress = IPv4Address.LOCALHOST.toString();
+                    IPv4Address invalidIPAddress = IPv4Address.LOCALHOST;
                     String json = writer.toString()
-                            .replace(original.genericIPv6Address.toString(), invalidIPAddress);
+                            .replace(original.genericIPv6Address.toString(), invalidIPAddress.toString());
 
+                    assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv6Address::valueOf);
+                }
+
+                private void assertInvalidIPAddressError(String json, String invalidIPAddress, Function<String, IPAddress<?>> parser) {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidIPAddress));
+
+                    String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidIPAddress)).getMessage();
+                    assertEquals(expected, exception.getCause().getMessage());
                 }
             }
         }
@@ -316,13 +320,11 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidSubnet = IPv6Address.MIN_VALUE.inSubnet(0).toString();
+                    IPv6Subnet invalidSubnet = IPv6Address.MIN_VALUE.inSubnet(0);
                     String json = writer.toString()
-                            .replace(original.ipv4Subnet.toString(), invalidSubnet);
+                            .replace(original.ipv4Subnet.toString(), invalidSubnet.toString());
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                    assertInvalidSubnetError(json, invalidSubnet.toString(), IPv4Subnet::valueOf);
                 }
 
                 @Test
@@ -333,13 +335,11 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidSubnet = IPv4Address.LOCALHOST.inSubnet(16).toString();
+                    IPv4Subnet invalidSubnet = IPv4Address.LOCALHOST.inSubnet(16);
                     String json = writer.toString()
-                            .replace(original.ipv6Subnet.toString(), invalidSubnet);
+                            .replace(original.ipv6Subnet.toString(), invalidSubnet.toString());
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                    assertInvalidSubnetError(json, invalidSubnet.toString(), IPv6Subnet::valueOf);
                 }
 
                 @Test
@@ -350,13 +350,11 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidSubnet = IPv6Address.MIN_VALUE.inSubnet(16).toString();
+                    IPv6Subnet invalidSubnet = IPv6Address.MIN_VALUE.inSubnet(16);
                     String json = writer.toString()
-                            .replace(original.genericIPv4Subnet.toString(), invalidSubnet);
+                            .replace(original.genericIPv4Subnet.toString(), invalidSubnet.toString());
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+                    assertInvalidSubnetError(json, invalidSubnet.toString(), IPv4Subnet::valueOf);
                 }
 
                 @Test
@@ -367,13 +365,19 @@ class IPModuleTest {
                     StringWriter writer = new StringWriter();
                     mapper.writeValue(writer, original);
 
-                    String invalidSubnet = IPv4Address.LOCALHOST.inSubnet(16).toString();
+                    IPv4Subnet invalidSubnet = IPv4Address.LOCALHOST.inSubnet(16);
                     String json = writer.toString()
-                            .replace(original.genericIPv6Subnet.toString(), invalidSubnet);
+                            .replace(original.genericIPv6Subnet.toString(), invalidSubnet.toString());
 
+                    assertInvalidSubnetError(json, invalidSubnet.toString(), IPv6Subnet::valueOf);
+                }
+
+                private void assertInvalidSubnetError(String json, String invalidSubnet, Function<String, Subnet<?>> parser) {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                    assertThat(exception.getCause().getMessage(), containsString(invalidSubnet));
+
+                    String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidSubnet)).getMessage();
+                    assertEquals(expected, exception.getCause().getMessage());
                 }
             }
         }
@@ -386,6 +390,699 @@ class IPModuleTest {
             testObject.genericIPv4Subnet = IPv4Address.LOCALHOST.inSubnet(16);
             testObject.genericIPv6Subnet = IPv6Address.MIN_VALUE.inSubnet(80);
             return testObject;
+        }
+    }
+
+    @Nested
+    @DisplayName("IP ranges")
+    class IPRanges {
+
+        @Nested
+        @DisplayName("Subnets")
+        class Subnets {
+
+            @Nested
+            @DisplayName("serialize")
+            class Serialize {
+
+                @Test
+                @DisplayName("nulls")
+                void testSerializeNulls() throws IOException {
+                    TestClass original = new TestClass();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+                    assertThat(json, containsString("\"ipv4Range\":null"));
+                    assertThat(json, containsString("\"ipv6Range\":null"));
+                    assertThat(json, containsString("\"ipRange\":null"));
+                    assertThat(json, containsString("\"genericIPv4Range\":null"));
+                    assertThat(json, containsString("\"genericIPv6Range\":null"));
+                }
+
+                @Test
+                @DisplayName("non-nulls")
+                void testSerializeNonNulls() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+                    assertThat(json, containsString("\"ipv4Range\":\"127.0.0.0/24\""));
+                    assertThat(json, containsString("\"ipv6Range\":\"::/96\""));
+                    assertThat(json, containsString("\"ipRange\":\"::/64\""));
+                    assertThat(json, containsString("\"genericIPv4Range\":\"127.0.0.0/16\""));
+                    assertThat(json, containsString("\"genericIPv6Range\":\"::/80\""));
+                }
+            }
+
+            @Nested
+            @DisplayName("deserialize")
+            class Deserialize {
+
+                @Test
+                @DisplayName("nulls")
+                void testSerializeNulls() throws IOException {
+                    TestClass original = new TestClass();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+
+                    TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                    assertNull(deserialized.ipv4Range);
+                    assertNull(deserialized.ipv6Range);
+                    assertNull(deserialized.ipRange);
+                    assertNull(deserialized.genericIPv4Range);
+                    assertNull(deserialized.genericIPv4Range);
+                }
+
+                @Test
+                @DisplayName("non-nulls")
+                void testSerializeNonNulls() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+
+                    TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                    assertEquals(original.ipv4Range, deserialized.ipv4Range);
+                    assertEquals(original.ipv6Range, deserialized.ipv6Range);
+                    assertEquals(original.ipRange, deserialized.ipRange);
+                    assertEquals(original.genericIPv4Range, deserialized.genericIPv4Range);
+                    assertEquals(original.genericIPv6Range, deserialized.genericIPv6Range);
+                }
+
+                @Nested
+                @DisplayName("incompatible values")
+                class IncompatibleVersions {
+
+                    @Test
+                    @DisplayName("IPv6Range instead of IPv4Range")
+                    void testIPv6RangeInsteadOfIPv4Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Range invalidRange = IPv6Address.MIN_VALUE.inSubnet(0);
+                        String json = writer.toString()
+                                .replace(original.ipv4Range.toString(), invalidRange.toString());
+
+                        assertInvalidSubnetError(json, invalidRange.toString(), IPv4Subnet::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4Range instead of IPv6Range")
+                    void testIPv4RangeInsteadOfIPv6Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Range invalidRange = IPv4Address.LOCALHOST.inSubnet(16);
+                        String json = writer.toString()
+                                .replace(original.ipv6Range.toString(), invalidRange.toString());
+
+                        assertInvalidSubnetError(json, invalidRange.toString(), IPv6Subnet::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6Range instead of IPRange<IPv4Address>")
+                    void testIPv6RangeInsteadOfIPRangeOfIPv4() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Range invalidRange = IPv6Address.MIN_VALUE.inSubnet(16);
+                        String json = writer.toString()
+                                .replace(original.genericIPv4Range.toString(), invalidRange.toString());
+
+                        assertInvalidSubnetError(json, invalidRange.toString(), IPv4Subnet::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4Range instead of IPRange<IPv6Address>")
+                    void testIPv4RangeInsteadOfRangeOfIPv6() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Range invalidRange = IPv4Address.LOCALHOST.inSubnet(16);
+                        String json = writer.toString()
+                                .replace(original.genericIPv6Range.toString(), invalidRange.toString());
+
+                        assertInvalidSubnetError(json, invalidRange.toString(), IPv6Subnet::valueOf);
+                    }
+
+                    private void assertInvalidSubnetError(String json, String invalidSubnet, Function<String, IPRange<?>> parser) {
+                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                                () -> mapper.readValue(json, TestClass.class));
+                        assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+
+                        String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidSubnet)).getMessage();
+                        assertEquals(expected, exception.getCause().getMessage());
+                    }
+                }
+            }
+
+            private TestClass createPopulatedTestObject() {
+                TestClass testObject = new TestClass();
+                testObject.ipv4Range = IPv4Address.LOCALHOST.inSubnet(24);
+                testObject.ipv6Range = IPv6Address.MIN_VALUE.inSubnet(96);
+                testObject.ipRange = IPv6Address.MIN_VALUE.inSubnet(64);
+                testObject.genericIPv4Range = IPv4Address.LOCALHOST.inSubnet(16);
+                testObject.genericIPv6Range = IPv6Address.MIN_VALUE.inSubnet(80);
+                return testObject;
+            }
+        }
+
+        @Nested
+        @DisplayName("Singleton IP ranges")
+        class Singletons {
+
+            @Nested
+            @DisplayName("serialize")
+            class Serialize {
+
+                @Test
+                @DisplayName("nulls")
+                void testSerializeNulls() throws IOException {
+                    TestClass original = new TestClass();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+                    assertThat(json, containsString("\"ipv4Range\":null"));
+                    assertThat(json, containsString("\"ipv6Range\":null"));
+                    assertThat(json, containsString("\"ipRange\":null"));
+                    assertThat(json, containsString("\"genericIPv4Range\":null"));
+                    assertThat(json, containsString("\"genericIPv6Range\":null"));
+                }
+
+                @Test
+                @DisplayName("non-nulls")
+                void testSerializeNonNulls() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+                    assertThat(json, containsString("\"ipv4Range\":{\"from\":\"127.0.0.1\",\"to\":\"127.0.0.1\"}"));
+                    assertThat(json, containsString("\"ipv6Range\":{\"from\":\"::1\",\"to\":\"::1\"}"));
+                    assertThat(json, containsString("\"ipRange\":{\"from\":\"::2\",\"to\":\"::2\"}"));
+                    assertThat(json, containsString("\"genericIPv4Range\":{\"from\":\"127.0.0.2\",\"to\":\"127.0.0.2\"}"));
+                    assertThat(json, containsString("\"genericIPv6Range\":{\"from\":\"::3\",\"to\":\"::3\"}"));
+                }
+            }
+
+            @Nested
+            @DisplayName("deserialize")
+            class Deserialize {
+
+                @Test
+                @DisplayName("nulls")
+                void testSerializeNulls() throws IOException {
+                    TestClass original = new TestClass();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+
+                    TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                    assertNull(deserialized.ipv4Range);
+                    assertNull(deserialized.ipv6Range);
+                    assertNull(deserialized.ipRange);
+                    assertNull(deserialized.genericIPv4Range);
+                    assertNull(deserialized.genericIPv4Range);
+                }
+
+                @Test
+                @DisplayName("non-nulls")
+                void testSerializeNonNulls() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+
+                    TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                    assertEquals(original.ipv4Range, deserialized.ipv4Range);
+                    assertEquals(original.ipv6Range, deserialized.ipv6Range);
+                    assertEquals(original.ipRange, deserialized.ipRange);
+                    assertEquals(original.genericIPv4Range, deserialized.genericIPv4Range);
+                    assertEquals(original.genericIPv6Range, deserialized.genericIPv6Range);
+                }
+
+                @Nested
+                @DisplayName("incompatible values")
+                class IncompatibleVersions {
+
+                    @Test
+                    @DisplayName("IPv6Range instead of IPv4Range")
+                    void testIPv6RangeInsteadOfIPv4Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidIPAddress = IPv6Address.LOCALHOST;
+                        String json = writer.toString()
+                                .replace(original.ipv4Range.from().toString(), invalidIPAddress.toString());
+
+                        assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4Range instead of IPv6Range")
+                    void testIPv4RangeInsteadOfIPv6Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidIPAddress = IPv4Address.LOCALHOST;
+                        String json = writer.toString()
+                                .replace(original.ipv6Range.from().toString(), invalidIPAddress.toString());
+
+                        assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv6Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6Range instead of IPRange<IPv4Address>")
+                    void testIPv6RangeInsteadOfIPRangeOfIPv4() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidIPAddress = IPv6Address.LOCALHOST;
+                        String json = writer.toString()
+                                .replace(original.genericIPv4Range.from().toString(), invalidIPAddress.toString());
+
+                        assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4Range instead of IPRange<IPv6Address>")
+                    void testIPv4RangeInsteadOfRangeOfIPv6() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidIPAddress = IPv4Address.LOCALHOST;
+                        String json = writer.toString()
+                                .replace(original.genericIPv6Range.from().toString(), invalidIPAddress.toString());
+
+                        assertInvalidIPAddressError(json, invalidIPAddress.toString(), IPv6Address::valueOf);
+                    }
+
+                    private void assertInvalidIPAddressError(String json, String invalidIPAddress, Function<String, IPAddress<?>> parser) {
+                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                                () -> mapper.readValue(json, TestClass.class));
+                        assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+
+                        String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidIPAddress)).getMessage();
+                        assertEquals(expected, exception.getCause().getMessage());
+                    }
+                }
+            }
+
+            private TestClass createPopulatedTestObject() {
+                TestClass testObject = new TestClass();
+                testObject.ipv4Range = IPv4Address.LOCALHOST.asRange();
+                testObject.ipv6Range = IPv6Address.LOCALHOST.asRange();
+                testObject.ipRange = IPv6Address.LOCALHOST.next().asRange();
+                testObject.genericIPv4Range = IPv4Address.LOCALHOST.next().asRange();
+                testObject.genericIPv6Range = IPv6Address.LOCALHOST.next().next().asRange();
+                return testObject;
+            }
+        }
+
+        @Nested
+        @DisplayName("Regular IP ranges")
+        class Regular {
+
+            @Nested
+            @DisplayName("serialize")
+            class Serialize {
+
+                @Test
+                @DisplayName("nulls")
+                void testSerializeNulls() throws IOException {
+                    TestClass original = new TestClass();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+                    assertThat(json, containsString("\"ipv4Range\":null"));
+                    assertThat(json, containsString("\"ipv6Range\":null"));
+                    assertThat(json, containsString("\"ipRange\":null"));
+                    assertThat(json, containsString("\"genericIPv4Range\":null"));
+                    assertThat(json, containsString("\"genericIPv6Range\":null"));
+                }
+
+                @Test
+                @DisplayName("non-nulls")
+                void testSerializeNonNulls() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+                    assertThat(json, containsString("\"ipv4Range\":{\"from\":\"127.0.0.1\",\"to\":\"127.0.0.6\"}"));
+                    assertThat(json, containsString("\"ipv6Range\":{\"from\":\"::1\",\"to\":\"::6\"}"));
+                    assertThat(json, containsString("\"ipRange\":{\"from\":\"::2\",\"to\":\"::7\"}"));
+                    assertThat(json, containsString("\"genericIPv4Range\":{\"from\":\"127.0.0.2\",\"to\":\"127.0.0.7\"}"));
+                    assertThat(json, containsString("\"genericIPv6Range\":{\"from\":\"::3\",\"to\":\"::8\"}"));
+                }
+            }
+
+            @Nested
+            @DisplayName("deserialize")
+            class Deserialize {
+
+                @Test
+                @DisplayName("nulls")
+                void testSerializeNulls() throws IOException {
+                    TestClass original = new TestClass();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+
+                    TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                    assertNull(deserialized.ipv4Range);
+                    assertNull(deserialized.ipv6Range);
+                    assertNull(deserialized.ipRange);
+                    assertNull(deserialized.genericIPv4Range);
+                    assertNull(deserialized.genericIPv4Range);
+                }
+
+                @Test
+                @DisplayName("non-nulls")
+                void testSerializeNonNulls() throws IOException {
+                    TestClass original = createPopulatedTestObject();
+
+                    StringWriter writer = new StringWriter();
+                    mapper.writeValue(writer, original);
+
+                    String json = writer.toString();
+
+                    TestClass deserialized = mapper.readValue(json, TestClass.class);
+
+                    assertEquals(original.ipv4Range, deserialized.ipv4Range);
+                    assertEquals(original.ipv6Range, deserialized.ipv6Range);
+                    assertEquals(original.ipRange, deserialized.ipRange);
+                    assertEquals(original.genericIPv4Range, deserialized.genericIPv4Range);
+                    assertEquals(original.genericIPv6Range, deserialized.genericIPv6Range);
+                }
+
+                @Nested
+                @DisplayName("incompatible values")
+                class IncompatibleVersions {
+
+                    @Test
+                    @DisplayName("IPv6 from for IPv4Range")
+                    void testIPv6RangeInsteadOfIPv4Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidFrom = IPv6Address.LOCALHOST;
+                        IPv6Address invalidTo = to(invalidFrom);
+                        String json = writer.toString()
+                                .replace(original.ipv4Range.from().toString(), invalidFrom.toString())
+                                .replace(original.ipv4Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4Range instead of IPv6Range")
+                    void testIPv4RangeInsteadOfIPv6Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidFrom = IPv4Address.LOCALHOST;
+                        IPv4Address invalidTo = to(invalidFrom);
+                        String json = writer.toString()
+                                .replace(original.ipv6Range.from().toString(), invalidFrom.toString())
+                                .replace(original.ipv6Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv6Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6Range instead of IPRange<IPv4Address>")
+                    void testIPv6RangeInsteadOfIPRangeOfIPv4() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidFrom = IPv6Address.LOCALHOST;
+                        IPv6Address invalidTo = to(invalidFrom);
+                        String json = writer.toString()
+                                .replace(original.genericIPv4Range.from().toString(), invalidFrom.toString())
+                                .replace(original.genericIPv4Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4Range instead of IPRange<IPv6Address>")
+                    void testIPv4RangeInsteadOfRangeOfIPv6() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidFrom = IPv4Address.LOCALHOST;
+                        IPv4Address invalidTo = to(invalidFrom);
+                        String json = writer.toString()
+                                .replace(original.genericIPv6Range.from().toString(), invalidFrom.toString())
+                                .replace(original.genericIPv6Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv6Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6 from for IPv4Range")
+                    void testIPv6FromForIPv4Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidFrom = IPv6Address.MIN_VALUE;
+                        String json = writer.toString()
+                                .replace(original.ipv4Range.from().toString(), invalidFrom.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6 to for IPv4Range")
+                    void testIPv6ToForIPv4Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidTo = IPv6Address.MAX_VALUE;
+                        String json = writer.toString()
+                                .replace(original.ipv4Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidTo.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4 from for IPv6Range")
+                    void testIPv4FromForIPv6Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidFrom = IPv4Address.MIN_VALUE;
+                        String json = writer.toString()
+                                .replace(original.ipv6Range.from().toString(), invalidFrom.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv6Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4 to for IPv6Range")
+                    void testIPv4ToForIPv6Range() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidTo = IPv4Address.MAX_VALUE;
+                        String json = writer.toString()
+                                .replace(original.ipv6Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidTo.toString(), IPv6Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6 from for IPRange<IPv4Address>")
+                    void testIPv6FromForIPRangeOfIPv4() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidFrom = IPv6Address.MIN_VALUE;
+                        String json = writer.toString()
+                                .replace(original.genericIPv4Range.from().toString(), invalidFrom.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv6 to for IPRange<IPv4Address>")
+                    void testIPv6ToForIPRangeOfIPv4() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address invalidTo = IPv6Address.MAX_VALUE;
+                        String json = writer.toString()
+                                .replace(original.genericIPv4Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidTo.toString(), IPv4Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4 from for IPRange<IPv6Address>")
+                    void testIPv4FromForIPRangeOfIPv6() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidFrom = IPv4Address.MIN_VALUE;
+                        String json = writer.toString()
+                                .replace(original.genericIPv6Range.from().toString(), invalidFrom.toString());
+
+                        assertInvalidIPAddressError(json, invalidFrom.toString(), IPv6Address::valueOf);
+                    }
+
+                    @Test
+                    @DisplayName("IPv4 to for IPRange<IPv6Address>")
+                    void testIPv4ToForIPRangeOfIPv6() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address invalidTo = IPv4Address.MAX_VALUE;
+                        String json = writer.toString()
+                                .replace(original.genericIPv6Range.to().toString(), invalidTo.toString());
+
+                        assertInvalidIPAddressError(json, invalidTo.toString(), IPv6Address::valueOf);
+                    }
+
+                    private void assertInvalidIPAddressError(String json, String invalidIPAddress, Function<String, IPAddress<?>> parser) {
+                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                                () -> mapper.readValue(json, TestClass.class));
+                        assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+
+                        String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidIPAddress)).getMessage();
+                        assertEquals(expected, exception.getCause().getMessage());
+                    }
+
+                    @Test
+                    @DisplayName("IPv4 from and IPv6 to for IPRange<?>")
+                    void testIPv4FromAndIPv6ToForIPRange() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv4Address to = IPv4Address.MIN_VALUE;
+                        IPv6Address from = IPv6Address.MAX_VALUE;
+                        String json = writer.toString()
+                                .replace(original.ipRange.from().toString(), from.toString())
+                                .replace(original.ipRange.to().toString(), to.toString());
+
+                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                                () -> mapper.readValue(json, TestClass.class));
+                        assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+                        assertEquals(Messages.IPRange.incompatibleToAndFrom.get(from, to), exception.getCause().getMessage());
+                    }
+
+                    @Test
+                    @DisplayName("IPv6 from and IPv4 to for IPRange<?>")
+                    void testIPv6FromAndIPv4ToForIPRange() throws IOException {
+                        TestClass original = createPopulatedTestObject();
+
+                        StringWriter writer = new StringWriter();
+                        mapper.writeValue(writer, original);
+
+                        IPv6Address to = IPv6Address.MIN_VALUE;
+                        IPv4Address from = IPv4Address.MAX_VALUE;
+                        String json = writer.toString()
+                                .replace(original.ipRange.from().toString(), from.toString())
+                                .replace(original.ipRange.to().toString(), to.toString());
+
+                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
+                                () -> mapper.readValue(json, TestClass.class));
+                        assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
+                        assertEquals(Messages.IPRange.incompatibleToAndFrom.get(from, to), exception.getCause().getMessage());
+                    }
+                }
+            }
+
+            private TestClass createPopulatedTestObject() {
+                TestClass testObject = new TestClass();
+                testObject.ipv4Range = (IPv4Range) createRange(IPv4Address.LOCALHOST);
+                testObject.ipv6Range = (IPv6Range) createRange(IPv6Address.LOCALHOST);
+                testObject.ipRange = createRange(IPv6Address.LOCALHOST.next());
+                testObject.genericIPv4Range = createRange(IPv4Address.LOCALHOST.next());
+                testObject.genericIPv6Range = createRange(IPv6Address.LOCALHOST.next().next());
+                return testObject;
+            }
+
+            private <I extends IPAddress<I>> IPRange<I> createRange(I start) {
+                I end = to(start);
+                return start.to(end);
+            }
+
+            private <I extends IPAddress<I>> I to(I start) {
+                I end = start;
+                for (int i = 0; i < 5; i++) {
+                    end = end.next();
+                }
+                return end;
+            }
         }
     }
 
@@ -403,5 +1100,11 @@ class IPModuleTest {
         private Subnet<?> subnet;
         private Subnet<IPv4Address> genericIPv4Subnet;
         private Subnet<IPv6Address> genericIPv6Subnet;
+
+        private IPv4Range ipv4Range;
+        private IPv6Range ipv6Range;
+        private IPRange<?> ipRange;
+        private IPRange<IPv4Address> genericIPv4Range;
+        private IPRange<IPv6Address> genericIPv6Range;
     }
 }

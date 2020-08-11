@@ -123,6 +123,7 @@
             <links>
               <link>https://robtimus.github.io/ip-utils/apidocs/</link>
               <link>https://fasterxml.github.io/jackson-core/javadoc/${version.jackson.javadoc}/</link>
+              <link>https://fasterxml.github.io/jackson-databind/javadoc/${version.jackson.javadoc}/</link>
             </links>
           </configuration>
         </plugin>
@@ -175,6 +176,27 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.robtimus</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <bundleName>com.github.robtimus.net.ip.jackson.databind.jackson-databind</bundleName>
+              <className>com.github.robtimus.net.ip.jackson.databind.Messages</className>
+              <licenseText>Apache-2.0</licenseText>
+              <licenseCopyrightHolder>Rob Spoor</licenseCopyrightHolder>
+              <licenseCopyrightYear>2020</licenseCopyrightYear>
+              <publicVisibility>false</publicVisibility>
+              <suppressWarnings>nls</suppressWarnings>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>

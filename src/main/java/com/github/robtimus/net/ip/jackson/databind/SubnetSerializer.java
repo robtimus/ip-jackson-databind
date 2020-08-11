@@ -25,20 +25,7 @@ import com.github.robtimus.net.ip.IPv4Subnet;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
-/**
- * Base class for JSON serializers for subnets.
- *
- * @author Rob Spoor
- * @param <S> The supported type of subnet.
- */
-public abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
-
-    /**
-     * Creates a new subnet serializer.
-     */
-    protected SubnetSerializer() {
-        super();
-    }
+abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
 
     @Override
     public void serialize(S value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
@@ -48,12 +35,7 @@ public abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializ
     @Override
     public abstract Class<S> handledType();
 
-    /**
-     * Returns a JSON serializer for {@link IPv4Subnet}.
-     *
-     * @return A JSON serializer for {@link IPv4Subnet}.
-     */
-    public static SubnetSerializer<IPv4Subnet> ipv4() {
+    static SubnetSerializer<IPv4Subnet> ipv4() {
         return IPv4.INSTANCE;
     }
 
@@ -67,12 +49,7 @@ public abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializ
         }
     }
 
-    /**
-     * Returns a JSON serializer for {@link IPv6Subnet}.
-     *
-     * @return A JSON serializer for {@link IPv6Subnet}.
-     */
-    public static SubnetSerializer<IPv6Subnet> ipv6() {
+    static SubnetSerializer<IPv6Subnet> ipv6() {
         return IPv6.INSTANCE;
     }
 
@@ -86,12 +63,7 @@ public abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializ
         }
     }
 
-    /**
-     * Returns a JSON serializer for {@link Subnet} of any type.
-     *
-     * @return A JSON serializer for {@link Subnet} of any type.
-     */
-    public static SubnetSerializer<Subnet<?>> anyVersion() {
+    static SubnetSerializer<Subnet<?>> anyVersion() {
         return AnyVersion.INSTANCE;
     }
 

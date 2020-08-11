@@ -31,37 +31,19 @@ import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
-/**
- * Base class for JSON deserializers for subnets.
- *
- * @author Rob Spoor
- * @param <S> The type of subnet.
- */
-public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<S> {
-
-    /**
-     * Creates a new subnet deserializer.
-     */
-    protected SubnetDeserializer() {
-        super();
-    }
+abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<S> {
 
     @Override
     public S deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        return deserialize(p.getText(), ctxt.getContextualType());
+        return deserialize(p.getText());
     }
 
-    abstract S deserialize(String value, JavaType type);
+    abstract S deserialize(String value);
 
     @Override
     public abstract Class<?> handledType();
 
-    /**
-     * Returns a JSON deserializer for {@link IPv4Subnet}.
-     *
-     * @return A JSON deserializer for {@link IPv4Subnet}.
-     */
-    public static SubnetDeserializer<IPv4Subnet> ipv4() {
+    static SubnetDeserializer<IPv4Subnet> ipv4() {
         return IPv4.INSTANCE;
     }
 
@@ -70,7 +52,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
         private static final IPv4 INSTANCE = new IPv4();
 
         @Override
-        IPv4Subnet deserialize(String value, JavaType type) {
+        IPv4Subnet deserialize(String value) {
             return IPv4Subnet.valueOf(value);
         }
 
@@ -80,12 +62,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
         }
     }
 
-    /**
-     * Returns a JSON deserializer for {@link IPv6Subnet}.
-     *
-     * @return A JSON deserializer for {@link IPv6Subnet}.
-     */
-    public static SubnetDeserializer<IPv6Subnet> ipv6() {
+    static SubnetDeserializer<IPv6Subnet> ipv6() {
         return IPv6.INSTANCE;
     }
 
@@ -94,7 +71,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
         private static final IPv6 INSTANCE = new IPv6();
 
         @Override
-        IPv6Subnet deserialize(String value, JavaType type) {
+        IPv6Subnet deserialize(String value) {
             return IPv6Subnet.valueOf(value);
         }
 
@@ -104,12 +81,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
         }
     }
 
-    /**
-     * Returns a JSON deserializer for {@link Subnet} of any type.
-     *
-     * @return A JSON deserializer for {@link Subnet} of any type.
-     */
-    public static SubnetDeserializer<Subnet<?>> anyVersion() {
+    static SubnetDeserializer<Subnet<?>> anyVersion() {
         return AnyVersion.INSTANCE;
     }
 
@@ -118,7 +90,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
         private static final AnyVersion INSTANCE = new AnyVersion();
 
         @Override
-        Subnet<?> deserialize(String value, JavaType type) {
+        Subnet<?> deserialize(String value) {
             return Subnet.valueOf(value);
         }
 

@@ -1,5 +1,5 @@
 /*
- * IPAddressSerializer.java
+ * IPRangeSerializer.java
  * Copyright 2020 Rob Spoor
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,60 +21,63 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.github.robtimus.net.ip.IPAddress;
-import com.github.robtimus.net.ip.IPv4Address;
-import com.github.robtimus.net.ip.IPv6Address;
+import com.github.robtimus.net.ip.IPRange;
+import com.github.robtimus.net.ip.IPv4Range;
+import com.github.robtimus.net.ip.IPv6Range;
 
-abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSerializer<I> {
+abstract class IPRangeSerializer<R extends IPRange<?>> extends JsonSerializer<R> {
 
     @Override
-    public void serialize(I value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeString(value.toString());
+    public void serialize(R value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        gen.writeStartObject();
+        gen.writeStringField("from", value.from().toString()); //$NON-NLS-1$
+        gen.writeStringField("to", value.to().toString()); //$NON-NLS-1$
+        gen.writeEndObject();
     }
 
     @Override
-    public abstract Class<I> handledType();
+    public abstract Class<R> handledType();
 
-    static IPAddressSerializer<IPv4Address> ipv4() {
+    static IPRangeSerializer<IPv4Range> ipv4() {
         return IPv4.INSTANCE;
     }
 
-    private static final class IPv4 extends IPAddressSerializer<IPv4Address> {
+    private static final class IPv4 extends IPRangeSerializer<IPv4Range> {
 
         private static final IPv4 INSTANCE = new IPv4();
 
         @Override
-        public Class<IPv4Address> handledType() {
-            return IPv4Address.class;
+        public Class<IPv4Range> handledType() {
+            return IPv4Range.class;
         }
     }
 
-    static IPAddressSerializer<IPv6Address> ipv6() {
+    static IPRangeSerializer<IPv6Range> ipv6() {
         return IPv6.INSTANCE;
     }
 
-    private static final class IPv6 extends IPAddressSerializer<IPv6Address> {
+    private static final class IPv6 extends IPRangeSerializer<IPv6Range> {
 
         private static final IPv6 INSTANCE = new IPv6();
 
         @Override
-        public Class<IPv6Address> handledType() {
-            return IPv6Address.class;
+        public Class<IPv6Range> handledType() {
+            return IPv6Range.class;
         }
     }
 
-    static IPAddressSerializer<IPAddress<?>> anyVersion() {
+    static IPRangeSerializer<IPRange<?>> anyVersion() {
         return AnyVersion.INSTANCE;
     }
 
-    private static final class AnyVersion extends IPAddressSerializer<IPAddress<?>> {
+    private static final class AnyVersion extends IPRangeSerializer<IPRange<?>> {
 
         private static final AnyVersion INSTANCE = new AnyVersion();
 
         @Override
         @SuppressWarnings("unchecked")
-        public Class<IPAddress<?>> handledType() {
-            return (Class<IPAddress<?>>) (Class<?>) IPAddress.class;
+        public Class<IPRange<?>> handledType() {
+            return (Class<IPRange<?>>) (Class<?>) IPRange.class;
         }
     }
 }

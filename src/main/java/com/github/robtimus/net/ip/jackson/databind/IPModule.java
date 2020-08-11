@@ -22,9 +22,12 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.github.robtimus.net.ip.IPAddress;
+import com.github.robtimus.net.ip.IPRange;
 import com.github.robtimus.net.ip.IPv4Address;
+import com.github.robtimus.net.ip.IPv4Range;
 import com.github.robtimus.net.ip.IPv4Subnet;
 import com.github.robtimus.net.ip.IPv6Address;
+import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
@@ -68,6 +71,10 @@ public final class IPModule extends Module {
         serializers.addSerializer(SubnetSerializer.ipv6());
         serializers.addSerializer(SubnetSerializer.anyVersion());
 
+        serializers.addSerializer(IPRangeSerializer.ipv4());
+        serializers.addSerializer(IPRangeSerializer.ipv6());
+        serializers.addSerializer(IPRangeSerializer.anyVersion());
+
         context.addSerializers(serializers);
     }
 
@@ -81,6 +88,10 @@ public final class IPModule extends Module {
         deserializers.addDeserializer(IPv4Subnet.class, SubnetDeserializer.ipv4());
         deserializers.addDeserializer(IPv6Subnet.class, SubnetDeserializer.ipv6());
         deserializers.addDeserializer(Subnet.class, SubnetDeserializer.anyVersion());
+
+        deserializers.addDeserializer(IPv4Range.class, IPRangeDeserializer.ipv4());
+        deserializers.addDeserializer(IPv6Range.class, IPRangeDeserializer.ipv6());
+        deserializers.addDeserializer(IPRange.class, IPRangeDeserializer.anyVersion());
 
         context.addDeserializers(deserializers);
     }

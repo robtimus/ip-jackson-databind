@@ -29,37 +29,19 @@ import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv6Address;
 
-/**
- * Base class for JSON deserializers for IP addresses.
- *
- * @author Rob Spoor
- * @param <IP> The supported type of IP address.
- */
-public abstract class IPAddressDeserializer<IP extends IPAddress<?>> extends JsonDeserializer<IP> {
-
-    /**
-     * Creates a new IP address deserializer.
-     */
-    protected IPAddressDeserializer() {
-        super();
-    }
+abstract class IPAddressDeserializer<I extends IPAddress<?>> extends JsonDeserializer<I> {
 
     @Override
-    public IP deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        return deserialize(p.getText(), ctxt.getContextualType());
+    public I deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        return deserialize(p.getText());
     }
 
-    abstract IP deserialize(String value, JavaType type);
+    abstract I deserialize(String value);
 
     @Override
     public abstract Class<?> handledType();
 
-    /**
-     * Returns a JSON deserializer for {@link IPv4Address}.
-     *
-     * @return A JSON deserializer for {@link IPv4Address}.
-     */
-    public static IPAddressDeserializer<IPv4Address> ipv4() {
+    static IPAddressDeserializer<IPv4Address> ipv4() {
         return IPv4.INSTANCE;
     }
 
@@ -68,7 +50,7 @@ public abstract class IPAddressDeserializer<IP extends IPAddress<?>> extends Jso
         private static final IPv4 INSTANCE = new IPv4();
 
         @Override
-        IPv4Address deserialize(String value, JavaType type) {
+        IPv4Address deserialize(String value) {
             return IPv4Address.valueOf(value);
         }
 
@@ -78,12 +60,7 @@ public abstract class IPAddressDeserializer<IP extends IPAddress<?>> extends Jso
         }
     }
 
-    /**
-     * Returns a JSON deserializer for {@link IPv6Address}.
-     *
-     * @return A JSON deserializer for {@link IPv6Address}.
-     */
-    public static IPAddressDeserializer<IPv6Address> ipv6() {
+    static IPAddressDeserializer<IPv6Address> ipv6() {
         return IPv6.INSTANCE;
     }
 
@@ -92,7 +69,7 @@ public abstract class IPAddressDeserializer<IP extends IPAddress<?>> extends Jso
         private static final IPv6 INSTANCE = new IPv6();
 
         @Override
-        IPv6Address deserialize(String value, JavaType type) {
+        IPv6Address deserialize(String value) {
             return IPv6Address.valueOf(value);
         }
 
@@ -102,12 +79,7 @@ public abstract class IPAddressDeserializer<IP extends IPAddress<?>> extends Jso
         }
     }
 
-    /**
-     * Returns a JSON deserializer for {@link IPAddress} of any type.
-     *
-     * @return A JSON deserializer for {@link IPAddress} of any type.
-     */
-    public static IPAddressDeserializer<IPAddress<?>> anyVersion() {
+    static IPAddressDeserializer<IPAddress<?>> anyVersion() {
         return AnyVersion.INSTANCE;
     }
 
@@ -116,7 +88,7 @@ public abstract class IPAddressDeserializer<IP extends IPAddress<?>> extends Jso
         private static final AnyVersion INSTANCE = new AnyVersion();
 
         @Override
-        IPAddress<?> deserialize(String value, JavaType type) {
+        IPAddress<?> deserialize(String value) {
             return IPAddress.valueOf(value);
         }
 
