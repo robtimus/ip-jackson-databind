@@ -63,17 +63,17 @@ public final class IPModule extends Module {
     private void setupSerializers(SetupContext context) {
         SimpleSerializers serializers = new SimpleSerializers();
 
-        serializers.addSerializer(IPAddressSerializer.ipv4());
-        serializers.addSerializer(IPAddressSerializer.ipv6());
-        serializers.addSerializer(IPAddressSerializer.anyVersion());
+        serializers.addSerializer(IPAddressSerializer.IPv4.INSTANCE);
+        serializers.addSerializer(IPAddressSerializer.IPv6.INSTANCE);
+        serializers.addSerializer(IPAddressSerializer.AnyVersion.INSTANCE);
 
-        serializers.addSerializer(SubnetSerializer.ipv4());
-        serializers.addSerializer(SubnetSerializer.ipv6());
-        serializers.addSerializer(SubnetSerializer.anyVersion());
+        serializers.addSerializer(SubnetSerializer.IPv4.INSTANCE);
+        serializers.addSerializer(SubnetSerializer.IPv6.INSTANCE);
+        serializers.addSerializer(SubnetSerializer.AnyVersion.INSTANCE);
 
-        serializers.addSerializer(IPRangeSerializer.ipv4());
-        serializers.addSerializer(IPRangeSerializer.ipv6());
-        serializers.addSerializer(IPRangeSerializer.anyVersion());
+        serializers.addSerializer(IPRangeSerializer.IPv4.INSTANCE);
+        serializers.addSerializer(IPRangeSerializer.IPv6.INSTANCE);
+        serializers.addSerializer(IPRangeSerializer.AnyVersion.INSTANCE);
 
         context.addSerializers(serializers);
     }
@@ -81,17 +81,17 @@ public final class IPModule extends Module {
     private void setupDeserializers(SetupContext context) {
         SimpleDeserializers deserializers = new SimpleDeserializers();
 
-        deserializers.addDeserializer(IPv4Address.class, IPAddressDeserializer.ipv4());
-        deserializers.addDeserializer(IPv6Address.class, IPAddressDeserializer.ipv6());
-        deserializers.addDeserializer(IPAddress.class, IPAddressDeserializer.anyVersion());
+        deserializers.addDeserializer(IPv4Address.class, IPAddressDeserializer.IPv4.INSTANCE);
+        deserializers.addDeserializer(IPv6Address.class, IPAddressDeserializer.IPv6.INSTANCE);
+        deserializers.addDeserializer(IPAddress.class, IPAddressDeserializer.AnyVersion.INSTANCE);
 
-        deserializers.addDeserializer(IPv4Subnet.class, SubnetDeserializer.ipv4());
-        deserializers.addDeserializer(IPv6Subnet.class, SubnetDeserializer.ipv6());
-        deserializers.addDeserializer(Subnet.class, SubnetDeserializer.anyVersion());
+        deserializers.addDeserializer(IPv4Subnet.class, SubnetDeserializer.IPv4.INSTANCE);
+        deserializers.addDeserializer(IPv6Subnet.class, SubnetDeserializer.IPv6.INSTANCE);
+        deserializers.addDeserializer(Subnet.class, SubnetDeserializer.AnyVersion.INSTANCE);
 
-        deserializers.addDeserializer(IPv4Range.class, IPRangeDeserializer.ipv4());
-        deserializers.addDeserializer(IPv6Range.class, IPRangeDeserializer.ipv6());
-        deserializers.addDeserializer(IPRange.class, IPRangeDeserializer.anyVersion());
+        deserializers.addDeserializer(IPv4Range.class, IPRangeDeserializer.IPv4.INSTANCE);
+        deserializers.addDeserializer(IPv6Range.class, IPRangeDeserializer.IPv6.INSTANCE);
+        deserializers.addDeserializer(IPRange.class, IPRangeDeserializer.AnyVersion.INSTANCE);
 
         context.addDeserializers(deserializers);
     }

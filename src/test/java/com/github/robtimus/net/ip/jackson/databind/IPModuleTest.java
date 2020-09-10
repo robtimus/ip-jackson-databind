@@ -35,8 +35,10 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.github.robtimus.net.ip.IPAddress;
+import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPRange;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv4Range;
@@ -81,6 +83,8 @@ class IPModuleTest {
                 assertThat(json, containsString("\"ipAddress\":null"));
                 assertThat(json, containsString("\"genericIPv4Address\":null"));
                 assertThat(json, containsString("\"genericIPv6Address\":null"));
+                assertThat(json, containsString("\"ipv6AddressWithCustomFormat\":null"));
+                assertThat(json, containsString("\"ipAddressWithCustomFormat\":null"));
             }
 
             @Test
@@ -97,6 +101,8 @@ class IPModuleTest {
                 assertThat(json, containsString("\"ipAddress\":\"::2\""));
                 assertThat(json, containsString("\"genericIPv4Address\":\"127.0.0.2\""));
                 assertThat(json, containsString("\"genericIPv6Address\":\"::3\""));
+                assertThat(json, containsString("\"ipv6AddressWithCustomFormat\":\"0:0:0:0:0:0:0:1\""));
+                assertThat(json, containsString("\"ipAddressWithCustomFormat\":\"0:0:0:0:0:0:0:2\""));
             }
         }
 
@@ -223,6 +229,8 @@ class IPModuleTest {
             testObject.ipAddress = IPv6Address.LOCALHOST.next();
             testObject.genericIPv4Address = IPv4Address.LOCALHOST.next();
             testObject.genericIPv6Address = IPv6Address.LOCALHOST.next().next();
+            testObject.ipv6AddressWithCustomFormat = testObject.ipv6Address;
+            testObject.ipAddressWithCustomFormat = testObject.ipAddress;
             return testObject;
         }
     }
@@ -249,6 +257,8 @@ class IPModuleTest {
                 assertThat(json, containsString("\"subnet\":null"));
                 assertThat(json, containsString("\"genericIPv4Subnet\":null"));
                 assertThat(json, containsString("\"genericIPv6Subnet\":null"));
+                assertThat(json, containsString("\"ipv6SubnetWithCustomFormat\":null"));
+                assertThat(json, containsString("\"subnetWithCustomFormat\":null"));
             }
 
             @Test
@@ -265,6 +275,8 @@ class IPModuleTest {
                 assertThat(json, containsString("\"subnet\":\"::/64\""));
                 assertThat(json, containsString("\"genericIPv4Subnet\":\"127.0.0.0/16\""));
                 assertThat(json, containsString("\"genericIPv6Subnet\":\"::/80\""));
+                assertThat(json, containsString("\"ipv6SubnetWithCustomFormat\":\"0:0:0:0:0:0:0:0/96\""));
+                assertThat(json, containsString("\"subnetWithCustomFormat\":\"0:0:0:0:0:0:0:0/64\""));
             }
         }
 
@@ -391,6 +403,8 @@ class IPModuleTest {
             testObject.subnet = IPv6Address.MIN_VALUE.inSubnet(64);
             testObject.genericIPv4Subnet = IPv4Address.LOCALHOST.inSubnet(16);
             testObject.genericIPv6Subnet = IPv6Address.MIN_VALUE.inSubnet(80);
+            testObject.ipv6SubnetWithCustomFormat = testObject.ipv6Subnet;
+            testObject.subnetWithCustomFormat = testObject.subnet;
             return testObject;
         }
     }
@@ -421,6 +435,8 @@ class IPModuleTest {
                     assertThat(json, containsString("\"ipRange\":null"));
                     assertThat(json, containsString("\"genericIPv4Range\":null"));
                     assertThat(json, containsString("\"genericIPv6Range\":null"));
+                    assertThat(json, containsString("\"ipv6RangeWithCustomFormat\":null"));
+                    assertThat(json, containsString("\"ipRangeWithCustomFormat\":null"));
                 }
 
                 @Test
@@ -437,6 +453,8 @@ class IPModuleTest {
                     assertThat(json, containsString("\"ipRange\":\"::/64\""));
                     assertThat(json, containsString("\"genericIPv4Range\":\"127.0.0.0/16\""));
                     assertThat(json, containsString("\"genericIPv6Range\":\"::/80\""));
+                    assertThat(json, containsString("\"ipv6RangeWithCustomFormat\":\"0:0:0:0:0:0:0:0/96\""));
+                    assertThat(json, containsString("\"ipRangeWithCustomFormat\":\"0:0:0:0:0:0:0:0/64\""));
                 }
             }
 
@@ -564,6 +582,8 @@ class IPModuleTest {
                 testObject.ipRange = IPv6Address.MIN_VALUE.inSubnet(64);
                 testObject.genericIPv4Range = IPv4Address.LOCALHOST.inSubnet(16);
                 testObject.genericIPv6Range = IPv6Address.MIN_VALUE.inSubnet(80);
+                testObject.ipv6RangeWithCustomFormat = testObject.ipv6Range;
+                testObject.ipRangeWithCustomFormat = testObject.ipRange;
                 return testObject;
             }
         }
@@ -590,6 +610,8 @@ class IPModuleTest {
                     assertThat(json, containsString("\"ipRange\":null"));
                     assertThat(json, containsString("\"genericIPv4Range\":null"));
                     assertThat(json, containsString("\"genericIPv6Range\":null"));
+                    assertThat(json, containsString("\"ipv6RangeWithCustomFormat\":null"));
+                    assertThat(json, containsString("\"ipRangeWithCustomFormat\":null"));
                 }
 
                 @Test
@@ -606,6 +628,8 @@ class IPModuleTest {
                     assertThat(json, containsString("\"ipRange\":{\"from\":\"::2\",\"to\":\"::2\"}"));
                     assertThat(json, containsString("\"genericIPv4Range\":{\"from\":\"127.0.0.2\",\"to\":\"127.0.0.2\"}"));
                     assertThat(json, containsString("\"genericIPv6Range\":{\"from\":\"::3\",\"to\":\"::3\"}"));
+                    assertThat(json, containsString("\"ipv6RangeWithCustomFormat\":{\"from\":\"0:0:0:0:0:0:0:1\",\"to\":\"0:0:0:0:0:0:0:1\"}"));
+                    assertThat(json, containsString("\"ipRangeWithCustomFormat\":{\"from\":\"0:0:0:0:0:0:0:2\",\"to\":\"0:0:0:0:0:0:0:2\"}"));
                 }
             }
 
@@ -733,6 +757,8 @@ class IPModuleTest {
                 testObject.ipRange = IPv6Address.LOCALHOST.next().asRange();
                 testObject.genericIPv4Range = IPv4Address.LOCALHOST.next().asRange();
                 testObject.genericIPv6Range = IPv6Address.LOCALHOST.next().next().asRange();
+                testObject.ipv6RangeWithCustomFormat = testObject.ipv6Range;
+                testObject.ipRangeWithCustomFormat = testObject.ipRange;
                 return testObject;
             }
         }
@@ -759,6 +785,8 @@ class IPModuleTest {
                     assertThat(json, containsString("\"ipRange\":null"));
                     assertThat(json, containsString("\"genericIPv4Range\":null"));
                     assertThat(json, containsString("\"genericIPv6Range\":null"));
+                    assertThat(json, containsString("\"ipv6RangeWithCustomFormat\":null"));
+                    assertThat(json, containsString("\"ipRangeWithCustomFormat\":null"));
                 }
 
                 @Test
@@ -775,6 +803,8 @@ class IPModuleTest {
                     assertThat(json, containsString("\"ipRange\":{\"from\":\"::2\",\"to\":\"::7\"}"));
                     assertThat(json, containsString("\"genericIPv4Range\":{\"from\":\"127.0.0.2\",\"to\":\"127.0.0.7\"}"));
                     assertThat(json, containsString("\"genericIPv6Range\":{\"from\":\"::3\",\"to\":\"::8\"}"));
+                    assertThat(json, containsString("\"ipv6RangeWithCustomFormat\":{\"from\":\"0:0:0:0:0:0:0:1\",\"to\":\"0:0:0:0:0:0:0:6\"}"));
+                    assertThat(json, containsString("\"ipRangeWithCustomFormat\":{\"from\":\"0:0:0:0:0:0:0:2\",\"to\":\"0:0:0:0:0:0:0:7\"}"));
                 }
             }
 
@@ -1153,6 +1183,8 @@ class IPModuleTest {
                 testObject.ipRange = createRange(IPv6Address.LOCALHOST.next());
                 testObject.genericIPv4Range = createRange(IPv4Address.LOCALHOST.next());
                 testObject.genericIPv6Range = createRange(IPv6Address.LOCALHOST.next().next());
+                testObject.ipv6RangeWithCustomFormat = testObject.ipv6Range;
+                testObject.ipRangeWithCustomFormat = testObject.ipRange;
                 return testObject;
             }
 
@@ -1191,5 +1223,74 @@ class IPModuleTest {
         private IPRange<?> ipRange;
         private IPRange<IPv4Address> genericIPv4Range;
         private IPRange<IPv6Address> genericIPv6Range;
+
+        @JsonSerialize(using = CustomIPv6AddressSerializer.class)
+        private IPv6Address ipv6AddressWithCustomFormat;
+        @JsonSerialize(using = CustomIPAddressSerializer.class)
+        private IPAddress<?> ipAddressWithCustomFormat;
+
+        @JsonSerialize(using = CustomIPv6RangeSerializer.class)
+        private IPv6Range ipv6RangeWithCustomFormat;
+        @JsonSerialize(using = CustomIPRangeSerializer.class)
+        private IPRange<?> ipRangeWithCustomFormat;
+
+        @JsonSerialize(using = CustomIPv6SubnetSerializer.class)
+        private IPv6Subnet ipv6SubnetWithCustomFormat;
+        @JsonSerialize(using = CustomSubnetSerializer.class)
+        private Subnet<?> subnetWithCustomFormat;
+    }
+
+    private static final class CustomIPv6AddressSerializer extends IPAddressSerializer.IPv6 {
+
+        CustomIPv6AddressSerializer() {
+            super(IPAddressFormatter.ipv6()
+                    .withMediumStyle()
+                    .build());
+        }
+    }
+
+    private static final class CustomIPAddressSerializer extends IPAddressSerializer.AnyVersion {
+
+        CustomIPAddressSerializer() {
+            super(IPAddressFormatter.anyVersion()
+                    .withMediumStyle()
+                    .build());
+        }
+    }
+
+    private static final class CustomIPv6RangeSerializer extends IPRangeSerializer.IPv6 {
+
+        CustomIPv6RangeSerializer() {
+            super(IPAddressFormatter.ipv6()
+                    .withMediumStyle()
+                    .build());
+        }
+    }
+
+    private static final class CustomIPRangeSerializer extends IPRangeSerializer.AnyVersion {
+
+        CustomIPRangeSerializer() {
+            super(IPAddressFormatter.anyVersion()
+                    .withMediumStyle()
+                    .build());
+        }
+    }
+
+    private static final class CustomIPv6SubnetSerializer extends SubnetSerializer.IPv6 {
+
+        CustomIPv6SubnetSerializer() {
+            super(IPAddressFormatter.ipv6()
+                    .withMediumStyle()
+                    .build());
+        }
+    }
+
+    private static final class CustomSubnetSerializer extends SubnetSerializer.AnyVersion {
+
+        CustomSubnetSerializer() {
+            super(IPAddressFormatter.anyVersion()
+                    .withMediumStyle()
+                    .build());
+        }
     }
 }

@@ -45,7 +45,21 @@ import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
-abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserializer<R> {
+/**
+ * Base class for all deserializers for {@link IPRange} and sub types.
+ * It supports JSON in one of the following formats:
+ * <ul>
+ * <li>A CIDR subnet notation.</li>
+ * <li>An object with properties {@code from} and {@code to}.</li>
+ * </ul>
+ *
+ * @author Rob Spoor
+ * @param <R> The type of IP range to deserialize.
+ */
+public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserializer<R> {
+
+    private IPRangeDeserializer() {
+    }
 
     @Override
     public R deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -94,13 +108,21 @@ abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserialize
     @Override
     public abstract Class<?> handledType();
 
-    static IPRangeDeserializer<IPv4Range> ipv4() {
-        return IPv4.INSTANCE;
-    }
+    /**
+     * A deserializer for {@link IPv4Range}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv4 extends IPRangeDeserializer<IPv4Range> {
 
-    private static final class IPv4 extends IPRangeDeserializer<IPv4Range> {
+        static final IPv4 INSTANCE = new IPv4();
 
-        private static final IPv4 INSTANCE = new IPv4();
+        /**
+         * Creates a new {@link IPv4Range} deserializer.
+         */
+        public IPv4() {
+            super();
+        }
 
         @Override
         IPv4Range deserializeSubnet(String value) {
@@ -122,13 +144,21 @@ abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserialize
         }
     }
 
-    static IPRangeDeserializer<IPv6Range> ipv6() {
-        return IPv6.INSTANCE;
-    }
+    /**
+     * A deserializer for {@link IPv6Range}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv6 extends IPRangeDeserializer<IPv6Range> {
 
-    private static final class IPv6 extends IPRangeDeserializer<IPv6Range> {
+        static final IPv6 INSTANCE = new IPv6();
 
-        private static final IPv6 INSTANCE = new IPv6();
+        /**
+         * Creates a new {@link IPv4Range} deserializer.
+         */
+        public IPv6() {
+            super();
+        }
 
         @Override
         IPv6Range deserializeSubnet(String value) {
@@ -150,13 +180,23 @@ abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserialize
         }
     }
 
-    static IPRangeDeserializer<IPRange<?>> anyVersion() {
-        return AnyVersion.INSTANCE;
-    }
+    /**
+     * A deserializer for {@link IPRange}. It can handle both {@link IPv4Range} and {@link IPv6Range}. If a property is declared as either
+     * {@code IPRange<IPv4Address>} or {@code IPRange<IPv6Address>}, it will limit the deserialization to only the specified type.
+     * In other words, trying to deserialize an IPv6 range for a property of type {@code IPRange<IPv4Address>} or vice versa will fail.
+     *
+     * @author Rob Spoor
+     */
+    public static class AnyVersion extends IPRangeDeserializer<IPRange<?>> implements ContextualDeserializer {
 
-    private static final class AnyVersion extends IPRangeDeserializer<IPRange<?>> implements ContextualDeserializer {
+        static final AnyVersion INSTANCE = new AnyVersion();
 
-        private static final AnyVersion INSTANCE = new AnyVersion();
+        /**
+         * Creates a new {@link IPRange} deserializer.
+         */
+        public AnyVersion() {
+            super();
+        }
 
         @Override
         IPRange<?> deserializeSubnet(String value) {
@@ -187,10 +227,10 @@ abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserialize
                     ? getGenericType(property.getType())
                     : null;
             if (genericType == IPv4Address.class) {
-                return ipv4();
+                return IPv4.INSTANCE;
             }
             if (genericType == IPv6Address.class) {
-                return ipv6();
+                return IPv6.INSTANCE;
             }
             return this;
         }

@@ -21,27 +21,56 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.github.robtimus.net.ip.IPAddress;
+import com.github.robtimus.net.ip.IPAddressFormatter;
+import com.github.robtimus.net.ip.IPv4Range;
 import com.github.robtimus.net.ip.IPv4Subnet;
+import com.github.robtimus.net.ip.IPv6Address;
+import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
-abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
+/**
+ * Base class for all serializers for {@link Subnet} and sub types.
+ *
+ * @author Rob Spoor
+ * @param <S> The type of subnet to serialize.
+ */
+public abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
+
+    private SubnetSerializer() {
+    }
 
     @Override
     public void serialize(S value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeString(value.toString());
+        gen.writeString(format(value));
     }
+
+    abstract String format(S value);
 
     @Override
     public abstract Class<S> handledType();
 
-    static SubnetSerializer<IPv4Subnet> ipv4() {
-        return IPv4.INSTANCE;
-    }
+    /**
+     * A serializer for {@link IPv4Range}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv4 extends SubnetSerializer<IPv4Subnet> {
 
-    private static final class IPv4 extends SubnetSerializer<IPv4Subnet> {
+        static final IPv4 INSTANCE = new IPv4();
 
-        private static final IPv4 INSTANCE = new IPv4();
+        /**
+         * Creates a new {@link IPv4Subnet} serializer.
+         */
+        public IPv4() {
+            super();
+        }
+
+        @Override
+        String format(IPv4Subnet value) {
+            return value.toString();
+        }
 
         @Override
         public Class<IPv4Subnet> handledType() {
@@ -49,13 +78,30 @@ abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
         }
     }
 
-    static SubnetSerializer<IPv6Subnet> ipv6() {
-        return IPv6.INSTANCE;
-    }
+    /**
+     * A serializer for {@link IPv6Range}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv6 extends SubnetSerializer<IPv6Subnet> {
 
-    private static final class IPv6 extends SubnetSerializer<IPv6Subnet> {
+        static final IPv6 INSTANCE = new IPv6(null);
 
-        private static final IPv6 INSTANCE = new IPv6();
+        private final IPAddressFormatter<? super IPv6Address> formatter;
+
+        /**
+         * Creates a new {@link IPv6Subnet} serializer.
+         *
+         * @param formatter The formatter to use for the from and to addresses. If {@code null}, {@link IPv6Subnet#toString()} will be used instead.
+         */
+        public IPv6(IPAddressFormatter<? super IPv6Address> formatter) {
+            this.formatter = formatter;
+        }
+
+        @Override
+        String format(IPv6Subnet value) {
+            return formatter != null ? formatter.format(value.routingPrefix()) + "/" + value.prefixLength() : value.toString(); //$NON-NLS-1$
+        }
 
         @Override
         public Class<IPv6Subnet> handledType() {
@@ -63,13 +109,30 @@ abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
         }
     }
 
-    static SubnetSerializer<Subnet<?>> anyVersion() {
-        return AnyVersion.INSTANCE;
-    }
+    /**
+     * A serializer for {@link Subnet}. It can handle both {@link IPv4Subnet} and {@link IPv6Subnet}.
+     *
+     * @author Rob Spoor
+     */
+    public static class AnyVersion extends SubnetSerializer<Subnet<?>> {
 
-    private static final class AnyVersion extends SubnetSerializer<Subnet<?>> {
+        static final AnyVersion INSTANCE = new AnyVersion(null);
 
-        private static final AnyVersion INSTANCE = new AnyVersion();
+        private final IPAddressFormatter<? super IPAddress<?>> formatter;
+
+        /**
+         * Creates a new {@link Subnet} serializer.
+         *
+         * @param formatter The formatter to use for the from and to addresses. If {@code null}, {@link Subnet#toString()} will be used instead.
+         */
+        public AnyVersion(IPAddressFormatter<? super IPAddress<?>> formatter) {
+            this.formatter = formatter;
+        }
+
+        @Override
+        String format(Subnet<?> value) {
+            return formatter != null ? formatter.format(value.routingPrefix()) + "/" + value.prefixLength() : value.toString(); //$NON-NLS-1$
+        }
 
         @Override
         @SuppressWarnings("unchecked")

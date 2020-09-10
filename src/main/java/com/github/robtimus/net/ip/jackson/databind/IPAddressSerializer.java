@@ -22,26 +22,51 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.github.robtimus.net.ip.IPAddress;
+import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv6Address;
 
-abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSerializer<I> {
+/**
+ * Base class for all serializers for {@link IPAddress} and sub classes.
+ *
+ * @author Rob Spoor
+ * @param <I> The type of IP address to serialize.
+ */
+public abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSerializer<I> {
+
+    private final IPAddressFormatter<? super I> formatter;
+
+    private IPAddressSerializer(IPAddressFormatter<? super I> formatter) {
+        this.formatter = formatter;
+    }
 
     @Override
     public void serialize(I value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeString(value.toString());
+        gen.writeString(format(value));
+    }
+
+    private String format(I value) {
+        return formatter != null ? formatter.format(value) : value.toString();
     }
 
     @Override
     public abstract Class<I> handledType();
 
-    static IPAddressSerializer<IPv4Address> ipv4() {
-        return IPv4.INSTANCE;
-    }
+    /**
+     * A serializer for {@link IPv4Address}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv4 extends IPAddressSerializer<IPv4Address> {
 
-    private static final class IPv4 extends IPAddressSerializer<IPv4Address> {
+        static final IPv4 INSTANCE = new IPv4();
 
-        private static final IPv4 INSTANCE = new IPv4();
+        /**
+         * Creates a new {@link IPv4Address} serializer.
+         */
+        public IPv4() {
+            super(null);
+        }
 
         @Override
         public Class<IPv4Address> handledType() {
@@ -49,13 +74,23 @@ abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSerialize
         }
     }
 
-    static IPAddressSerializer<IPv6Address> ipv6() {
-        return IPv6.INSTANCE;
-    }
+    /**
+     * A serializer for {@link IPv4Address}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv6 extends IPAddressSerializer<IPv6Address> {
 
-    private static final class IPv6 extends IPAddressSerializer<IPv6Address> {
+        static final IPv6 INSTANCE = new IPv6(null);
 
-        private static final IPv6 INSTANCE = new IPv6();
+        /**
+         * Creates a new {@link IPv6Address} serializer.
+         *
+         * @param formatter The formatter to use. If {@code null}, {@link IPv6Address#toString()} will be used instead.
+         */
+        public IPv6(IPAddressFormatter<? super IPv6Address> formatter) {
+            super(formatter);
+        }
 
         @Override
         public Class<IPv6Address> handledType() {
@@ -63,13 +98,23 @@ abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSerialize
         }
     }
 
-    static IPAddressSerializer<IPAddress<?>> anyVersion() {
-        return AnyVersion.INSTANCE;
-    }
+    /**
+     * A serializer for {@link IPAddress}. It can handle both {@link IPv4Address} and {@link IPv6Address}.
+     *
+     * @author Rob Spoor
+     */
+    public static class AnyVersion extends IPAddressSerializer<IPAddress<?>> {
 
-    private static final class AnyVersion extends IPAddressSerializer<IPAddress<?>> {
+        static final AnyVersion INSTANCE = new AnyVersion(null);
 
-        private static final AnyVersion INSTANCE = new AnyVersion();
+        /**
+         * Creates a new {@link IPAddress} serializer.
+         *
+         * @param formatter The formatter to use. If {@code null}, {@link IPAddress#toString()} will be used instead.
+         */
+        public AnyVersion(IPAddressFormatter<? super IPAddress<?>> formatter) {
+            super(formatter);
+        }
 
         @Override
         @SuppressWarnings("unchecked")

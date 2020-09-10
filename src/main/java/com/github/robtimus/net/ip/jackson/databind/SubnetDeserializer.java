@@ -31,7 +31,13 @@ import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
 
-abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<S> {
+/**
+ * Base class for all deserializers for {@link Subnet} and sub classes.
+ *
+ * @author Rob Spoor
+ * @param <S> The type of subnet to deserialize.
+ */
+public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<S> {
 
     @Override
     public S deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -43,13 +49,21 @@ abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<
     @Override
     public abstract Class<?> handledType();
 
-    static SubnetDeserializer<IPv4Subnet> ipv4() {
-        return IPv4.INSTANCE;
-    }
+    /**
+     * A deserializer for {@link IPv4Subnet}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv4 extends SubnetDeserializer<IPv4Subnet> {
 
-    private static final class IPv4 extends SubnetDeserializer<IPv4Subnet> {
+        static final IPv4 INSTANCE = new IPv4();
 
-        private static final IPv4 INSTANCE = new IPv4();
+        /**
+         * Creates a new {@link IPv4Subnet} deserializer.
+         */
+        public IPv4() {
+            super();
+        }
 
         @Override
         IPv4Subnet deserialize(String value) {
@@ -62,13 +76,21 @@ abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<
         }
     }
 
-    static SubnetDeserializer<IPv6Subnet> ipv6() {
-        return IPv6.INSTANCE;
-    }
+    /**
+     * A deserializer for {@link IPv6Subnet}.
+     *
+     * @author Rob Spoor
+     */
+    public static class IPv6 extends SubnetDeserializer<IPv6Subnet> {
 
-    private static final class IPv6 extends SubnetDeserializer<IPv6Subnet> {
+        static final IPv6 INSTANCE = new IPv6();
 
-        private static final IPv6 INSTANCE = new IPv6();
+        /**
+         * Creates a new {@link IPv6Subnet} deserializer.
+         */
+        public IPv6() {
+            super();
+        }
 
         @Override
         IPv6Subnet deserialize(String value) {
@@ -81,13 +103,23 @@ abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<
         }
     }
 
-    static SubnetDeserializer<Subnet<?>> anyVersion() {
-        return AnyVersion.INSTANCE;
-    }
+    /**
+     * A deserializer for {@link Subnet}. It can handle both {@link IPv4Subnet} and {@link IPv6Subnet}. If a property is declared as either
+     * {@code Subnet<IPv4Address>} or {@code Subnet<IPv6Address>}, it will limit the deserialization to only the specified type.
+     * In other words, trying to deserialize an IPv6 subnet for a property of type {@code Subnet<IPv4Address>} or vice versa will fail.
+     *
+     * @author Rob Spoor
+     */
+    public static class AnyVersion extends SubnetDeserializer<Subnet<?>> implements ContextualDeserializer {
 
-    private static final class AnyVersion extends SubnetDeserializer<Subnet<?>> implements ContextualDeserializer {
+        static final AnyVersion INSTANCE = new AnyVersion();
 
-        private static final AnyVersion INSTANCE = new AnyVersion();
+        /**
+         * Creates a new {@link Subnet} deserializer.
+         */
+        public AnyVersion() {
+            super();
+        }
 
         @Override
         Subnet<?> deserialize(String value) {
@@ -100,10 +132,10 @@ abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<
                     ? getGenericType(property.getType())
                     : null;
             if (genericType == IPv4Address.class) {
-                return ipv4();
+                return IPv4.INSTANCE;
             }
             if (genericType == IPv6Address.class) {
-                return ipv6();
+                return IPv6.INSTANCE;
             }
             return this;
         }
