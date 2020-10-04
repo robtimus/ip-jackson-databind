@@ -154,7 +154,7 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
         static final IPv6 INSTANCE = new IPv6();
 
         /**
-         * Creates a new {@link IPv4Range} deserializer.
+         * Creates a new {@link IPv6Range} deserializer.
          */
         public IPv6() {
             super();

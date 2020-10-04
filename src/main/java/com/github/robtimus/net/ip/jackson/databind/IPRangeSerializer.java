@@ -41,6 +41,9 @@ public abstract class IPRangeSerializer<R extends IPRange<?>> extends JsonSerial
     static final String FROM_FIELD_NAME = "from"; //$NON-NLS-1$
     static final String TO_FIELD_NAME = "to"; //$NON-NLS-1$
 
+    private IPRangeSerializer() {
+    }
+
     @Override
     public void serialize(R value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (value instanceof Subnet<?>) {

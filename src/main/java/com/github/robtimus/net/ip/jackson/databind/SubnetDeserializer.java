@@ -39,6 +39,9 @@ import com.github.robtimus.net.ip.Subnet;
  */
 public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<S> {
 
+    private SubnetDeserializer() {
+    }
+
     @Override
     public S deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         return deserialize(p.getText());
