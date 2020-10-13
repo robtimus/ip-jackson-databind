@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -33,7 +34,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
@@ -55,10 +55,8 @@ class IPModuleTest {
 
     @BeforeEach
     void setupMapper() {
-        Module module = IPModule.instance();
-
         mapper = new ObjectMapper()
-                .registerModule(module);
+                .findAndRegisterModules();
     }
 
     @Nested
@@ -1201,6 +1199,14 @@ class IPModuleTest {
                 return end;
             }
         }
+    }
+
+    @Test
+    @DisplayName("IPModule.instance()")
+    void testInstance() {
+
+        assertEquals(IPModule.class, IPModule.instance().getClass());
+        assertSame(IPModule.instance(), IPModule.instance());
     }
 
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)

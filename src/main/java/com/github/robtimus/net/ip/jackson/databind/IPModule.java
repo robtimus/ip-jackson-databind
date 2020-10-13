@@ -19,6 +19,7 @@ package com.github.robtimus.net.ip.jackson.databind;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.github.robtimus.net.ip.IPAddress;
@@ -40,7 +41,13 @@ public final class IPModule extends Module {
 
     private static final IPModule INSTANCE = new IPModule();
 
-    private IPModule() {
+    /**
+     * Creates a new module.
+     * <p>
+     * This constructor should not be used directly; it exists for allowing the module to be found using {@link ObjectMapper#findAndRegisterModules()}
+     * only.
+     */
+    public IPModule() {
         super();
     }
 

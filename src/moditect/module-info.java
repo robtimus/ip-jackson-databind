@@ -3,4 +3,6 @@ module com.github.robtimus.ip.jackson.databind {
     requires transitive com.fasterxml.jackson.databind;
 
     exports com.github.robtimus.net.ip.jackson.databind;
+
+    provides com.fasterxml.jackson.databind.Module with com.github.robtimus.net.ip.jackson.databind.IPModule;
 }
