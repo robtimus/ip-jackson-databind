@@ -266,4 +266,14 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <!-- profile to test against the minimum support Jackson version -->
+      <id>jackson-min-version</id>
+      <properties>
+        <version.jackson>2.7.0</version.jackson>
+      </properties>
+    </profile>
+  </profiles>
 </project>
