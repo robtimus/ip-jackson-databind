@@ -1066,7 +1066,7 @@ class IPModuleTest {
                         JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                                 () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                        assertEquals(Messages.IPRange.incompatibleToAndFrom.get(from, to), exception.getCause().getMessage());
+                        assertEquals(Messages.IPRange.incompatibleToAndFrom(from, to), exception.getCause().getMessage());
                     }
 
                     @Test
@@ -1086,7 +1086,7 @@ class IPModuleTest {
                         JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                                 () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
-                        assertEquals(Messages.IPRange.incompatibleToAndFrom.get(from, to), exception.getCause().getMessage());
+                        assertEquals(Messages.IPRange.incompatibleToAndFrom(from, to), exception.getCause().getMessage());
                     }
                 }
             }
@@ -1103,7 +1103,7 @@ class IPModuleTest {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.missingProperty.get("from"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.missingProperty("from"), exception.getCause().getMessage());
                 }
 
                 @Test
@@ -1114,7 +1114,7 @@ class IPModuleTest {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.missingProperty.get("to"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.missingProperty("to"), exception.getCause().getMessage());
                 }
 
                 @Test
@@ -1125,7 +1125,7 @@ class IPModuleTest {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue.get("from", "null"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.invalidPropertyValue("from", "null"), exception.getCause().getMessage());
                 }
 
                 @Test
@@ -1136,7 +1136,7 @@ class IPModuleTest {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue.get("to", "null"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.invalidPropertyValue("to", "null"), exception.getCause().getMessage());
                 }
 
                 @Test
@@ -1147,7 +1147,7 @@ class IPModuleTest {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue.get("from", "{}"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.invalidPropertyValue("from", "{}"), exception.getCause().getMessage());
                 }
 
                 @Test
@@ -1158,7 +1158,7 @@ class IPModuleTest {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue.get("to", "{}"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.invalidPropertyValue("to", "{}"), exception.getCause().getMessage());
                 }
 
                 @Test

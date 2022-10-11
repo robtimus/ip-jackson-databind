@@ -83,9 +83,9 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
             return textNode.asText();
         }
         if (childNode == null) {
-            throw new IllegalStateException(Messages.IPRange.missingProperty.get(fieldName));
+            throw new IllegalStateException(Messages.IPRange.missingProperty(fieldName));
         }
-        throw new IllegalStateException(Messages.IPRange.invalidPropertyValue.get(fieldName, childNode));
+        throw new IllegalStateException(Messages.IPRange.invalidPropertyValue(fieldName, childNode));
     }
 
     private void validateProperties(TreeNode node, JsonParser p) throws UnrecognizedPropertyException {
@@ -215,7 +215,7 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
         @SuppressWarnings("unchecked")
         private static <I extends IPAddress<I>> IPRange<?> createRange(IPAddress<?> from, IPAddress<?> to) {
             if (from.getClass() != to.getClass()) {
-                throw new IllegalArgumentException(Messages.IPRange.incompatibleToAndFrom.get(from, to));
+                throw new IllegalArgumentException(Messages.IPRange.incompatibleToAndFrom(from, to));
             }
             // from and to are of the same class, so the cast is safe
             return ((I) from).to((I) to);
