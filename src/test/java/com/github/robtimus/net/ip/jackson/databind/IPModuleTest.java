@@ -1121,44 +1121,35 @@ class IPModuleTest {
                 @DisplayName("null from")
                 void testNullFrom() {
                     String json = "{\"ipRange\":{\"from\":null,\"to\":\"127.0.0.1\"}";
-
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                            () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue("from", "null"), exception.getCause().getMessage());
+                    testIncorrectProperty(json, "from", "null");
                 }
 
                 @Test
                 @DisplayName("null to")
                 void testNullTo() {
                     String json = "{\"ipRange\":{\"from\":\"127.0.0.1\",\"to\":null}";
-
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                            () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue("to", "null"), exception.getCause().getMessage());
+                    testIncorrectProperty(json, "to", "null");
                 }
 
                 @Test
                 @DisplayName("incorrect from")
                 void testIncorrectFrom() {
                     String json = "{\"ipRange\":{\"from\":{},\"to\":\"127.0.0.1\"}";
-
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                            () -> mapper.readValue(json, TestClass.class));
-                    assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue("from", "{}"), exception.getCause().getMessage());
+                    testIncorrectProperty(json, "from", "{}");
                 }
 
                 @Test
                 @DisplayName("incorrect to")
                 void testIncorrectTo() {
                     String json = "{\"ipRange\":{\"from\":\"127.0.0.1\",\"to\":{}}";
+                    testIncorrectProperty(json, "to", "{}");
+                }
 
+                private void testIncorrectProperty(String json, String propertyName, String propertyValue) {
                     JsonProcessingException exception = assertThrows(JsonProcessingException.class,
                             () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
-                    assertEquals(Messages.IPRange.invalidPropertyValue("to", "{}"), exception.getCause().getMessage());
+                    assertEquals(Messages.IPRange.invalidPropertyValue(propertyName, propertyValue), exception.getCause().getMessage());
                 }
 
                 @Test
