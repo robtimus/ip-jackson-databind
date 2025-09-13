@@ -15,9 +15,15 @@
  * limitations under the License.
  */
 
+/**
+ * Provides support for serializing and deserializing IP addresses and ranges using Jackson.
+ *
+ * @provides com.fasterxml.jackson.databind.Module
+ */
 module com.github.robtimus.ip.jackson.databind {
     requires transitive com.github.robtimus.ip.utils;
     requires transitive com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.annotation;
 
     exports com.github.robtimus.net.ip.jackson.databind;
 
