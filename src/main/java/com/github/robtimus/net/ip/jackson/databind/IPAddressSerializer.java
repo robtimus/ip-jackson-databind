@@ -17,14 +17,14 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import java.io.IOException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv6Address;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * Base class for all serializers for {@link IPAddress} and sub classes.
@@ -32,7 +32,7 @@ import com.github.robtimus.net.ip.IPv6Address;
  * @author Rob Spoor
  * @param <I> The type of IP address to serialize.
  */
-public abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSerializer<I> {
+public abstract class IPAddressSerializer<I extends IPAddress<?>> extends ValueSerializer<I> {
 
     private final IPAddressFormatter<? super I> formatter;
 
@@ -41,7 +41,8 @@ public abstract class IPAddressSerializer<I extends IPAddress<?>> extends JsonSe
     }
 
     @Override
-    public void serialize(I value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    @SuppressWarnings("resource")
+    public void serialize(I value, JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
         gen.writeString(format(value));
     }
 

@@ -17,11 +17,6 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleDeserializers;
-import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPRange;
 import com.github.robtimus.net.ip.IPv4Address;
@@ -31,20 +26,25 @@ import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
+import tools.jackson.core.Version;
+import tools.jackson.databind.JacksonModule;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.module.SimpleDeserializers;
+import tools.jackson.databind.module.SimpleSerializers;
 
 /**
  * A module that adds support for serializing and deserializing IP addresses and ranges values.
  *
  * @author Rob Spoor
  */
-public final class IPModule extends Module {
+public final class IPModule extends JacksonModule {
 
     private static final IPModule INSTANCE = new IPModule();
 
     /**
      * Creates a new module.
      * <p>
-     * This constructor should not be used directly; it exists for allowing the module to be found using {@link ObjectMapper#findAndRegisterModules()}
+     * This constructor should not be used directly; it exists for allowing the module to be found using {@link MapperBuilder#findAndAddModules()}
      * only.
      */
     public IPModule() {

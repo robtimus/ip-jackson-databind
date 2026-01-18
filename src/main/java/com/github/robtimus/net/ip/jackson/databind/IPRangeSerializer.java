@@ -17,10 +17,6 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import java.io.IOException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPRange;
@@ -29,6 +25,10 @@ import com.github.robtimus.net.ip.IPv4Range;
 import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.Subnet;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * Base class for all serializers for {@link IPRange} and sub types.
@@ -36,7 +36,7 @@ import com.github.robtimus.net.ip.Subnet;
  * @author Rob Spoor
  * @param <R> The type of IP range to serialize.
  */
-public abstract class IPRangeSerializer<R extends IPRange<?>> extends JsonSerializer<R> {
+public abstract class IPRangeSerializer<R extends IPRange<?>> extends ValueSerializer<R> {
 
     static final String FROM_FIELD_NAME = "from"; //$NON-NLS-1$
     static final String TO_FIELD_NAME = "to"; //$NON-NLS-1$
@@ -45,14 +45,14 @@ public abstract class IPRangeSerializer<R extends IPRange<?>> extends JsonSerial
     }
 
     @Override
-    public void serialize(R value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        if (value instanceof Subnet<?>) {
-            Subnet<?> subnet = (Subnet<?>) value;
+    @SuppressWarnings("resource")
+    public void serialize(R value, JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
+        if (value instanceof Subnet<?> subnet) {
             gen.writeString(formatFrom(value) + "/" + subnet.prefixLength()); //$NON-NLS-1$
         } else {
             gen.writeStartObject();
-            gen.writeStringField(FROM_FIELD_NAME, formatFrom(value));
-            gen.writeStringField(TO_FIELD_NAME, formatTo(value));
+            gen.writeStringProperty(FROM_FIELD_NAME, formatFrom(value));
+            gen.writeStringProperty(TO_FIELD_NAME, formatTo(value));
             gen.writeEndObject();
         }
     }

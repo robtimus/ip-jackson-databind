@@ -17,19 +17,17 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import java.io.IOException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv4Subnet;
 import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ValueDeserializer;
 
 /**
  * Base class for all deserializers for {@link Subnet} and sub classes.
@@ -37,14 +35,14 @@ import com.github.robtimus.net.ip.Subnet;
  * @author Rob Spoor
  * @param <S> The type of subnet to deserialize.
  */
-public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeserializer<S> {
+public abstract class SubnetDeserializer<S extends Subnet<?>> extends ValueDeserializer<S> {
 
     private SubnetDeserializer() {
     }
 
     @Override
-    public S deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        return deserialize(p.getText());
+    public S deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
+        return deserialize(p.getString());
     }
 
     abstract S deserialize(String value);
@@ -113,7 +111,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
      *
      * @author Rob Spoor
      */
-    public static class AnyVersion extends SubnetDeserializer<Subnet<?>> implements ContextualDeserializer {
+    public static class AnyVersion extends SubnetDeserializer<Subnet<?>> {
 
         static final AnyVersion INSTANCE = new AnyVersion();
 
@@ -130,7 +128,7 @@ public abstract class SubnetDeserializer<S extends Subnet<?>> extends JsonDeseri
         }
 
         @Override
-        public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
+        public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
             Class<?> genericType = property != null
                     ? getGenericType(property.getType())
                     : null;

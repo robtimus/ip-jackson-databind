@@ -19,22 +19,9 @@ package com.github.robtimus.net.ip.jackson.databind;
 
 import static com.github.robtimus.net.ip.jackson.databind.IPRangeSerializer.FROM_FIELD_NAME;
 import static com.github.robtimus.net.ip.jackson.databind.IPRangeSerializer.TO_FIELD_NAME;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPRange;
 import com.github.robtimus.net.ip.IPv4Address;
@@ -44,6 +31,16 @@ import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.TreeNode;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
+import tools.jackson.databind.node.StringNode;
 
 /**
  * Base class for all deserializers for {@link IPRange} and sub types.
@@ -56,19 +53,19 @@ import com.github.robtimus.net.ip.Subnet;
  * @author Rob Spoor
  * @param <R> The type of IP range to deserialize.
  */
-public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDeserializer<R> {
+public abstract class IPRangeDeserializer<R extends IPRange<?>> extends ValueDeserializer<R> {
 
     private IPRangeDeserializer() {
     }
 
     @Override
-    public R deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public R deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
         return p.hasToken(JsonToken.START_OBJECT)
                 ? deserializeIPRange(p)
-                : deserializeSubnet(p.getText());
+                : deserializeSubnet(p.getString());
     }
 
-    private R deserializeIPRange(JsonParser p) throws IOException {
+    private R deserializeIPRange(JsonParser p) throws JacksonException {
         TreeNode node = p.readValueAsTree();
         validateProperties(node, p);
         String from = getTextValue(node, FROM_FIELD_NAME);
@@ -78,9 +75,8 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
 
     private String getTextValue(TreeNode node, String fieldName) {
         TreeNode childNode = node.get(fieldName);
-        if (childNode instanceof TextNode) {
-            TextNode textNode = (TextNode) childNode;
-            return textNode.asText();
+        if (childNode instanceof StringNode stringNode) {
+            return stringNode.asString();
         }
         if (childNode == null) {
             throw new IllegalStateException(Messages.IPRange.missingProperty(fieldName));
@@ -89,10 +85,7 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
     }
 
     private void validateProperties(TreeNode node, JsonParser p) throws UnrecognizedPropertyException {
-        Set<String> fieldNames = new LinkedHashSet<>();
-        for (Iterator<String> i = node.fieldNames(); i.hasNext(); ) {
-            fieldNames.add(i.next());
-        }
+        Set<String> fieldNames = new LinkedHashSet<>(node.propertyNames());
         fieldNames.remove(FROM_FIELD_NAME);
         fieldNames.remove(TO_FIELD_NAME);
         if (!fieldNames.isEmpty()) {
@@ -187,7 +180,7 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
      *
      * @author Rob Spoor
      */
-    public static class AnyVersion extends IPRangeDeserializer<IPRange<?>> implements ContextualDeserializer {
+    public static class AnyVersion extends IPRangeDeserializer<IPRange<?>> {
 
         static final AnyVersion INSTANCE = new AnyVersion();
 
@@ -222,7 +215,7 @@ public abstract class IPRangeDeserializer<R extends IPRange<?>> extends JsonDese
         }
 
         @Override
-        public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
+        public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
             Class<?> genericType = property != null
                     ? getGenericType(property.getType())
                     : null;

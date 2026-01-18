@@ -62,9 +62,9 @@
   </issueManagement>
 
   <properties>
-    <version.java>11</version.java>
+    <version.java>17</version.java>
 
-    <version.jackson>2.17.2</version.jackson>
+    <version.jackson>3.0.3</version.jackson>
     <version.ip-utils>1.3.2</version.ip-utils>
   </properties>
 
@@ -76,7 +76,7 @@
     </dependency>
 
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${version.jackson}</version>
     </dependency>
@@ -110,8 +110,8 @@
             <sourcepath>${project.basedir}/src/main/java</sourcepath>
             <links>
               <link>https://robtimus.github.io/ip-utils/apidocs/</link>
-              <link>https://javadoc.io/doc/com.fasterxml.jackson.core/jackson-core/${version.jackson}/</link>
-              <link>https://javadoc.io/doc/com.fasterxml.jackson.core/jackson-databind/${version.jackson}/</link>
+              <link>https://javadoc.io/doc/tools.jackson.core/jackson-core/${version.jackson}/</link>
+              <link>https://javadoc.io/doc/tools.jackson.core/jackson-databind/${version.jackson}/</link>
             </links>
           </configuration>
         </plugin>
@@ -222,8 +222,8 @@
           <argLine>
             @{argLine}
             -javaagent:${org.mockito:mockito-core:jar}
-            <!-- Allow JUnit to fully access the test classes -->
-            --add-opens com.github.robtimus.ip.jackson.databind/com.github.robtimus.net.ip.jackson.databind=ALL-UNNAMED
+            <!-- Allow Jackson and JUnit to fully access the test classes -->
+            --add-opens com.github.robtimus.ip.jackson.databind/com.github.robtimus.net.ip.jackson.databind=tools.jackson.databind,ALL-UNNAMED
           </argLine>
         </configuration>
       </plugin>
@@ -269,7 +269,7 @@
     <profile>
       <id>min-versions</id>
       <properties>
-        <version.jackson>2.11.0</version.jackson>
+        <version.jackson>3.0.0</version.jackson>
       </properties>
     </profile>
   </profiles>

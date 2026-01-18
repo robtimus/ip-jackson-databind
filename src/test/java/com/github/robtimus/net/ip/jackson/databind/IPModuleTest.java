@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +32,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPRange;
@@ -47,16 +42,21 @@ import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
+import tools.jackson.databind.json.JsonMapper;
 
 @SuppressWarnings("nls")
 class IPModuleTest {
 
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
     @BeforeEach
     void setupMapper() {
-        mapper = new ObjectMapper()
-                .findAndRegisterModules();
+        mapper = JsonMapper.builder()
+                .findAndAddModules()
+                .build();
     }
 
     @Nested
@@ -69,7 +69,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("nulls")
-            void testSerializeNulls() throws IOException {
+            void testSerializeNulls() {
                 TestClass original = new TestClass();
 
                 StringWriter writer = new StringWriter();
@@ -87,7 +87,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("non-nulls")
-            void testSerializeNonNulls() throws IOException {
+            void testSerializeNonNulls() {
                 TestClass original = createPopulatedTestObject();
 
                 StringWriter writer = new StringWriter();
@@ -110,7 +110,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("nulls")
-            void testDeserializeNulls() throws IOException {
+            void testDeserializeNulls() {
                 TestClass original = new TestClass();
 
                 StringWriter writer = new StringWriter();
@@ -129,7 +129,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("non-nulls")
-            void testDeserializeNonNulls() throws IOException {
+            void testDeserializeNonNulls() {
                 TestClass original = createPopulatedTestObject();
 
                 StringWriter writer = new StringWriter();
@@ -152,7 +152,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv6Address instead of IPv4Address")
-                void testIPv6AddressInsteadOfIPv4Address() throws IOException {
+                void testIPv6AddressInsteadOfIPv4Address() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -167,7 +167,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv4Address instead of IPv6Address")
-                void testIPv4AddressInsteadOfIPv6Address() throws IOException {
+                void testIPv4AddressInsteadOfIPv6Address() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -182,7 +182,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv6Address instead of IPAddress<IPv4Address>")
-                void testIPv6AddressInsteadOfIPAddressOfIPv4() throws IOException {
+                void testIPv6AddressInsteadOfIPAddressOfIPv4() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -197,7 +197,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv4Address instead of IPAddress<IPv6Address>")
-                void testIPv4AddressInsteadOfIPAddressOfIPv6() throws IOException {
+                void testIPv4AddressInsteadOfIPAddressOfIPv6() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -211,7 +211,7 @@ class IPModuleTest {
                 }
 
                 private void assertInvalidIPAddressError(String json, String invalidIPAddress, Function<String, IPAddress<?>> parser) {
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
+                    JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
 
                     String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidIPAddress)).getMessage();
@@ -243,7 +243,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("nulls")
-            void testSerializeNulls() throws IOException {
+            void testSerializeNulls() {
                 TestClass original = new TestClass();
 
                 StringWriter writer = new StringWriter();
@@ -261,7 +261,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("non-nulls")
-            void testSerializeNonNulls() throws IOException {
+            void testSerializeNonNulls() {
                 TestClass original = createPopulatedTestObject();
 
                 StringWriter writer = new StringWriter();
@@ -284,7 +284,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("nulls")
-            void testDeserializeNulls() throws IOException {
+            void testDeserializeNulls() {
                 TestClass original = new TestClass();
 
                 StringWriter writer = new StringWriter();
@@ -303,7 +303,7 @@ class IPModuleTest {
 
             @Test
             @DisplayName("non-nulls")
-            void testDeserializeNonNulls() throws IOException {
+            void testDeserializeNonNulls() {
                 TestClass original = createPopulatedTestObject();
 
                 StringWriter writer = new StringWriter();
@@ -326,7 +326,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv6Subnet instead of IPv4Subnet")
-                void testIPv6SubnetInsteadOfIPv4Subnet() throws IOException {
+                void testIPv6SubnetInsteadOfIPv4Subnet() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -341,7 +341,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv4Subnet instead of IPv6Subnet")
-                void testIPv4SubnetInsteadOfIPv6Subnet() throws IOException {
+                void testIPv4SubnetInsteadOfIPv6Subnet() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -356,7 +356,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv6Subnet instead of Subnet<IPv4Address>")
-                void testIPv6SubnetInsteadOfSubnetOfIPv4() throws IOException {
+                void testIPv6SubnetInsteadOfSubnetOfIPv4() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -371,7 +371,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("IPv4Subnet instead of Subnet<IPv6Address>")
-                void testIPv4SubnetInsteadOfSubnetOfIPv6() throws IOException {
+                void testIPv4SubnetInsteadOfSubnetOfIPv6() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -385,7 +385,7 @@ class IPModuleTest {
                 }
 
                 private void assertInvalidSubnetError(String json, String invalidSubnet, Function<String, Subnet<?>> parser) {
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class, () -> mapper.readValue(json, TestClass.class));
+                    JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
 
                     String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidSubnet)).getMessage();
@@ -421,7 +421,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testSerializeNulls() throws IOException {
+                void testSerializeNulls() {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -439,7 +439,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testSerializeNonNulls() throws IOException {
+                void testSerializeNonNulls() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -462,7 +462,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testDeserializeNulls() throws IOException {
+                void testDeserializeNulls() {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -481,7 +481,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testDeserializeNonNulls() throws IOException {
+                void testDeserializeNonNulls() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -504,7 +504,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6Range instead of IPv4Range")
-                    void testIPv6RangeInsteadOfIPv4Range() throws IOException {
+                    void testIPv6RangeInsteadOfIPv4Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -519,7 +519,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4Range instead of IPv6Range")
-                    void testIPv4RangeInsteadOfIPv6Range() throws IOException {
+                    void testIPv4RangeInsteadOfIPv6Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -534,7 +534,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6Range instead of IPRange<IPv4Address>")
-                    void testIPv6RangeInsteadOfIPRangeOfIPv4() throws IOException {
+                    void testIPv6RangeInsteadOfIPRangeOfIPv4() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -549,7 +549,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4Range instead of IPRange<IPv6Address>")
-                    void testIPv4RangeInsteadOfRangeOfIPv6() throws IOException {
+                    void testIPv4RangeInsteadOfRangeOfIPv6() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -563,8 +563,7 @@ class IPModuleTest {
                     }
 
                     private void assertInvalidSubnetError(String json, String invalidSubnet, Function<String, IPRange<?>> parser) {
-                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                                () -> mapper.readValue(json, TestClass.class));
+                        JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
 
                         String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidSubnet)).getMessage();
@@ -596,7 +595,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testSerializeNulls() throws IOException {
+                void testSerializeNulls() {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -614,7 +613,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testSerializeNonNulls() throws IOException {
+                void testSerializeNonNulls() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -637,7 +636,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testDeserializeNulls() throws IOException {
+                void testDeserializeNulls() {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -656,7 +655,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testDeserializeNonNulls() throws IOException {
+                void testDeserializeNonNulls() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -679,7 +678,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6Range instead of IPv4Range")
-                    void testIPv6RangeInsteadOfIPv4Range() throws IOException {
+                    void testIPv6RangeInsteadOfIPv4Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -694,7 +693,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4Range instead of IPv6Range")
-                    void testIPv4RangeInsteadOfIPv6Range() throws IOException {
+                    void testIPv4RangeInsteadOfIPv6Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -709,7 +708,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6Range instead of IPRange<IPv4Address>")
-                    void testIPv6RangeInsteadOfIPRangeOfIPv4() throws IOException {
+                    void testIPv6RangeInsteadOfIPRangeOfIPv4() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -724,7 +723,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4Range instead of IPRange<IPv6Address>")
-                    void testIPv4RangeInsteadOfRangeOfIPv6() throws IOException {
+                    void testIPv4RangeInsteadOfRangeOfIPv6() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -738,8 +737,7 @@ class IPModuleTest {
                     }
 
                     private void assertInvalidIPAddressError(String json, String invalidIPAddress, Function<String, IPAddress<?>> parser) {
-                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                                () -> mapper.readValue(json, TestClass.class));
+                        JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
 
                         String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidIPAddress)).getMessage();
@@ -771,7 +769,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testSerializeNulls() throws IOException {
+                void testSerializeNulls() {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -789,7 +787,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testSerializeNonNulls() throws IOException {
+                void testSerializeNonNulls() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -812,7 +810,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("nulls")
-                void testDeserializeNulls() throws IOException {
+                void testDeserializeNulls() {
                     TestClass original = new TestClass();
 
                     StringWriter writer = new StringWriter();
@@ -831,7 +829,7 @@ class IPModuleTest {
 
                 @Test
                 @DisplayName("non-nulls")
-                void testDeserializeNonNulls() throws IOException {
+                void testDeserializeNonNulls() {
                     TestClass original = createPopulatedTestObject();
 
                     StringWriter writer = new StringWriter();
@@ -854,7 +852,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6 from for IPv4Range")
-                    void testIPv6RangeInsteadOfIPv4Range() throws IOException {
+                    void testIPv6RangeInsteadOfIPv4Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -871,7 +869,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4Range instead of IPv6Range")
-                    void testIPv4RangeInsteadOfIPv6Range() throws IOException {
+                    void testIPv4RangeInsteadOfIPv6Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -888,7 +886,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6Range instead of IPRange<IPv4Address>")
-                    void testIPv6RangeInsteadOfIPRangeOfIPv4() throws IOException {
+                    void testIPv6RangeInsteadOfIPRangeOfIPv4() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -905,7 +903,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4Range instead of IPRange<IPv6Address>")
-                    void testIPv4RangeInsteadOfRangeOfIPv6() throws IOException {
+                    void testIPv4RangeInsteadOfRangeOfIPv6() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -922,7 +920,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6 from for IPv4Range")
-                    void testIPv6FromForIPv4Range() throws IOException {
+                    void testIPv6FromForIPv4Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -937,7 +935,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6 to for IPv4Range")
-                    void testIPv6ToForIPv4Range() throws IOException {
+                    void testIPv6ToForIPv4Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -952,7 +950,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4 from for IPv6Range")
-                    void testIPv4FromForIPv6Range() throws IOException {
+                    void testIPv4FromForIPv6Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -967,7 +965,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4 to for IPv6Range")
-                    void testIPv4ToForIPv6Range() throws IOException {
+                    void testIPv4ToForIPv6Range() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -982,7 +980,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6 from for IPRange<IPv4Address>")
-                    void testIPv6FromForIPRangeOfIPv4() throws IOException {
+                    void testIPv6FromForIPRangeOfIPv4() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -997,7 +995,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv6 to for IPRange<IPv4Address>")
-                    void testIPv6ToForIPRangeOfIPv4() throws IOException {
+                    void testIPv6ToForIPRangeOfIPv4() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -1012,7 +1010,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4 from for IPRange<IPv6Address>")
-                    void testIPv4FromForIPRangeOfIPv6() throws IOException {
+                    void testIPv4FromForIPRangeOfIPv6() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -1027,7 +1025,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4 to for IPRange<IPv6Address>")
-                    void testIPv4ToForIPRangeOfIPv6() throws IOException {
+                    void testIPv4ToForIPRangeOfIPv6() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -1041,8 +1039,7 @@ class IPModuleTest {
                     }
 
                     private void assertInvalidIPAddressError(String json, String invalidIPAddress, Function<String, IPAddress<?>> parser) {
-                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                                () -> mapper.readValue(json, TestClass.class));
+                        JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
 
                         String expected = assertThrows(IllegalArgumentException.class, () -> parser.apply(invalidIPAddress)).getMessage();
@@ -1051,7 +1048,7 @@ class IPModuleTest {
 
                     @Test
                     @DisplayName("IPv4 from and IPv6 to for IPRange<?>")
-                    void testIPv4FromAndIPv6ToForIPRange() throws IOException {
+                    void testIPv4FromAndIPv6ToForIPRange() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -1063,15 +1060,14 @@ class IPModuleTest {
                                 .replace(original.ipRange.from().toString(), from.toString())
                                 .replace(original.ipRange.to().toString(), to.toString());
 
-                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                                () -> mapper.readValue(json, TestClass.class));
+                        JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
                         assertEquals(Messages.IPRange.incompatibleToAndFrom(from, to), exception.getCause().getMessage());
                     }
 
                     @Test
                     @DisplayName("IPv6 from and IPv4 to for IPRange<?>")
-                    void testIPv6FromAndIPv4ToForIPRange() throws IOException {
+                    void testIPv6FromAndIPv4ToForIPRange() {
                         TestClass original = createPopulatedTestObject();
 
                         StringWriter writer = new StringWriter();
@@ -1083,8 +1079,7 @@ class IPModuleTest {
                                 .replace(original.ipRange.from().toString(), from.toString())
                                 .replace(original.ipRange.to().toString(), to.toString());
 
-                        JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                                () -> mapper.readValue(json, TestClass.class));
+                        JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                         assertThat(exception.getCause(), instanceOf(IllegalArgumentException.class));
                         assertEquals(Messages.IPRange.incompatibleToAndFrom(from, to), exception.getCause().getMessage());
                     }
@@ -1100,8 +1095,7 @@ class IPModuleTest {
                 void testMissingFrom() {
                     String json = "{\"ipRange\":{\"to\":\"127.0.0.1\"}";
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                            () -> mapper.readValue(json, TestClass.class));
+                    JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
                     assertEquals(Messages.IPRange.missingProperty("from"), exception.getCause().getMessage());
                 }
@@ -1111,8 +1105,7 @@ class IPModuleTest {
                 void testMissingTo() {
                     String json = "{\"ipRange\":{\"from\":\"127.0.0.1\"}";
 
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                            () -> mapper.readValue(json, TestClass.class));
+                    JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
                     assertEquals(Messages.IPRange.missingProperty("to"), exception.getCause().getMessage());
                 }
@@ -1146,8 +1139,7 @@ class IPModuleTest {
                 }
 
                 private void testIncorrectProperty(String json, String propertyName, String propertyValue) {
-                    JsonProcessingException exception = assertThrows(JsonProcessingException.class,
-                            () -> mapper.readValue(json, TestClass.class));
+                    JacksonException exception = assertThrows(JacksonException.class, () -> mapper.readValue(json, TestClass.class));
                     assertThat(exception.getCause(), instanceOf(IllegalStateException.class));
                     assertEquals(Messages.IPRange.invalidPropertyValue(propertyName, propertyValue), exception.getCause().getMessage());
                 }

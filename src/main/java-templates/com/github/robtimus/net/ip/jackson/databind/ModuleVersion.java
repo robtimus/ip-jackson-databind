@@ -17,8 +17,8 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.core.util.VersionUtil;
+import tools.jackson.core.Version;
+import tools.jackson.core.util.VersionUtil;
 
 final class ModuleVersion {
 

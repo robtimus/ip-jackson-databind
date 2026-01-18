@@ -17,17 +17,15 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import java.io.IOException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPv4Address;
 import com.github.robtimus.net.ip.IPv6Address;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ValueDeserializer;
 
 /**
  * Base class for all deserializers for {@link IPAddress} and sub classes.
@@ -35,14 +33,14 @@ import com.github.robtimus.net.ip.IPv6Address;
  * @author Rob Spoor
  * @param <I> The type of IP address to deserialize.
  */
-public abstract class IPAddressDeserializer<I extends IPAddress<?>> extends JsonDeserializer<I> {
+public abstract class IPAddressDeserializer<I extends IPAddress<?>> extends ValueDeserializer<I> {
 
     private IPAddressDeserializer() {
     }
 
     @Override
-    public I deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        return deserialize(p.getText());
+    public I deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
+        return deserialize(p.getString());
     }
 
     abstract I deserialize(String value);
@@ -111,7 +109,7 @@ public abstract class IPAddressDeserializer<I extends IPAddress<?>> extends Json
      *
      * @author Rob Spoor
      */
-    public static class AnyVersion extends IPAddressDeserializer<IPAddress<?>> implements ContextualDeserializer {
+    public static class AnyVersion extends IPAddressDeserializer<IPAddress<?>> {
 
         static final AnyVersion INSTANCE = new AnyVersion();
 
@@ -128,7 +126,7 @@ public abstract class IPAddressDeserializer<I extends IPAddress<?>> extends Json
         }
 
         @Override
-        public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
+        public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
             Class<?> genericType = property != null
                     ? getGenericType(property.getType())
                     : null;

@@ -17,10 +17,6 @@
 
 package com.github.robtimus.net.ip.jackson.databind;
 
-import java.io.IOException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.github.robtimus.net.ip.IPAddress;
 import com.github.robtimus.net.ip.IPAddressFormatter;
 import com.github.robtimus.net.ip.IPv4Range;
@@ -29,6 +25,10 @@ import com.github.robtimus.net.ip.IPv6Address;
 import com.github.robtimus.net.ip.IPv6Range;
 import com.github.robtimus.net.ip.IPv6Subnet;
 import com.github.robtimus.net.ip.Subnet;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * Base class for all serializers for {@link Subnet} and sub types.
@@ -36,13 +36,14 @@ import com.github.robtimus.net.ip.Subnet;
  * @author Rob Spoor
  * @param <S> The type of subnet to serialize.
  */
-public abstract class SubnetSerializer<S extends Subnet<?>> extends JsonSerializer<S> {
+public abstract class SubnetSerializer<S extends Subnet<?>> extends ValueSerializer<S> {
 
     private SubnetSerializer() {
     }
 
     @Override
-    public void serialize(S value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    @SuppressWarnings("resource")
+    public void serialize(S value, JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
         gen.writeString(format(value));
     }
 
