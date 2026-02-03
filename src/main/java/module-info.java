@@ -27,7 +27,7 @@ module com.github.robtimus.ip.jackson.databind {
 
     exports com.github.robtimus.net.ip.jackson.databind;
 
-    opens com.github.robtimus.net.ip.jackson.databind to com.fasterxml.jackson.databind;
+    opens com.github.robtimus.net.ip.jackson.databind to tools.jackson.databind;
 
     provides tools.jackson.databind.JacksonModule with com.github.robtimus.net.ip.jackson.databind.IPModule;
 }
