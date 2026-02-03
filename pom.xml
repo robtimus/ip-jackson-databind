@@ -64,7 +64,7 @@
   <properties>
     <version.java>17</version.java>
 
-    <version.jackson>3.0.3</version.jackson>
+    <version.jackson>3.0.4</version.jackson>
     <version.ip-utils>1.3.2</version.ip-utils>
   </properties>
 
