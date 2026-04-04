@@ -65,8 +65,10 @@
     <version.java>17</version.java>
 
     <version.ip-utils>1.3.2</version.ip-utils>
-    <version.jackson>3.0.4</version.jackson>
-    <version.junit>6.0.2</version.junit>
+    <version.jackson>3.1.1</version.jackson>
+    <!-- jackson-core 3.1.0 and 3.1.1's Javadoc pages are broken; use 3.1.0-rc1 until this is fixed -->
+    <version.jackson-core-javadoc>3.1.0-rc1</version.jackson-core-javadoc>
+    <version.junit>6.0.3</version.junit>
   </properties>
 
   <dependencies>
@@ -111,7 +113,7 @@
             <sourcepath>${project.basedir}/src/main/java</sourcepath>
             <links>
               <link>https://robtimus.github.io/ip-utils/apidocs/</link>
-              <link>https://javadoc.io/doc/tools.jackson.core/jackson-core/${version.jackson}/</link>
+              <link>https://javadoc.io/doc/tools.jackson.core/jackson-core/${version.jackson-core-javadoc}/</link>
               <link>https://javadoc.io/doc/tools.jackson.core/jackson-databind/${version.jackson}/</link>
             </links>
           </configuration>
